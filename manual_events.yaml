@@ -1,0 +1,47 @@
+# =========================================================
+# Manual quick-add events
+# =========================================================
+# Drop in anything you hear about that no feed or API will ever catch —
+# Instagram posts, flyers, word of mouth, a sign outside the library.
+# scraper.py merges these in alongside every other source on each run,
+# so they get the same dedup, classification, and dashboard display.
+#
+# Only "title" and "date" are required. Everything else is optional but
+# improves how the card looks/filters on the dashboard.
+#
+#   title:       what's happening
+#   date:        "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM" (24-hour) if you know
+#                the start time — the time makes it sort/display better
+#   venue:       where
+#   url:         link to more info (school page, Eventbrite, etc.) —
+#                leave blank if there isn't one
+#   category:    short label, e.g. "School Musical", "Craft Fair"
+#   event_type:  one of: Concert, Theater & Performing Arts, Comedy,
+#                Family & Kids, Festival & Fair, Sports, Community & Civic,
+#                School & Youth, Film, Other
+#                (leave blank and the pipeline will guess from the title)
+#   scale:       Major / Mid-size / Local-Community
+#                (leave blank — these are virtually always Local-Community,
+#                that's the pipeline's default if you skip it)
+#   price_display: e.g. "$12" or "Free" — optional
+#   source_note: where you heard about it, e.g. "Instagram @mhs_cougar_den"
+#                (shows up on the card as a small tag)
+
+events:
+  - title: "Annie Jr."
+    date: "2026-07-24T19:00"
+    venue: "Montgomery High School"
+    url: ""
+    category: "School Musical"
+    event_type: "School & Youth"
+    price_display: ""
+    source_note: "Instagram"
+
+  # - title: "Another event you spot on Instagram"
+  #   date: "2026-08-02T18:00"
+  #   venue: "Some Local Venue"
+  #   url: ""
+  #   category: ""
+  #   event_type: ""
+  #   price_display: ""
+  #   source_note: "Instagram"

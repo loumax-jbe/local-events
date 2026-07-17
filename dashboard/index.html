@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local Events Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #14181C;
+    --ink-raised: #1C2229;
+    --marquee: #E8A33D;
+    --marquee-dim: #7A5A2A;
+    --teal: #4A8A80;
+    --cream: #F0EAD6;
+    --slate: #8A93A0;
+    --line: #2A313A;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--cream);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ---------- Header / marquee ---------- */
+  header {
+    padding: 40px 24px 28px;
+    border-bottom: 2px solid var(--line);
+    background:
+      repeating-linear-gradient(90deg, var(--marquee) 0 10px, transparent 10px 22px) top / 100% 4px no-repeat,
+      var(--ink);
+  }
+
+  .marquee-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.4rem, 6vw, 4.2rem);
+    letter-spacing: 0.04em;
+    color: var(--marquee);
+    margin: 0;
+    line-height: 0.95;
+  }
+
+  .marquee-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--slate);
+    font-size: 0.85rem;
+    margin-top: 8px;
+    letter-spacing: 0.03em;
+  }
+
+  #generated-at { color: var(--teal); }
+
+  /* ---------- Controls ---------- */
+  .controls {
+    max-width: 1100px;
+    margin: 18px auto 0;
+    padding: 0 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+  .controls:first-of-type { margin-top: 24px; }
+
+  #search {
+    flex: 1 1 240px;
+    background: var(--ink-raised);
+    border: 1px solid var(--line);
+    color: var(--cream);
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.95rem;
+  }
+  #search:focus { outline: 2px solid var(--marquee); outline-offset: 1px; }
+  #search::placeholder { color: var(--slate); }
+
+  .filter-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--slate);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-right: 2px;
+  }
+  #scale-chips, #category-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--slate);
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .chip:hover { border-color: var(--marquee); color: var(--cream); }
+  .chip.active { background: var(--marquee); border-color: var(--marquee); color: var(--ink); font-weight: 600; }
+  .chip:focus-visible { outline: 2px solid var(--marquee); outline-offset: 2px; }
+
+  /* ---------- Event grid ---------- */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  #status-line {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--slate);
+    font-size: 0.8rem;
+    margin-bottom: 18px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+  }
+
+  /* Ticket-stub card: date block + info block, joined by a perforated tear line */
+  .ticket {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    background: var(--ink-raised);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .ticket:hover { transform: translateY(-2px); border-color: var(--marquee-dim); }
+  .ticket:focus-visible { outline: 2px solid var(--marquee); outline-offset: 2px; }
+
+  .ticket-date {
+    background: var(--teal);
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 4px;
+    text-align: center;
+    position: relative;
+  }
+  .ticket-date .month {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .ticket-date .day {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.1rem;
+    line-height: 1;
+    margin: 2px 0;
+  }
+  .ticket-date .time {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    opacity: 0.85;
+  }
+
+  /* Perforation: dashed line + notch circles top & bottom */
+  .ticket-date::after {
+    content: "";
+    position: absolute;
+    top: 0; right: -1px; bottom: 0;
+    width: 0;
+    border-right: 2px dashed rgba(20,24,28,0.35);
+  }
+  .ticket-date::before {
+    content: "";
+    position: absolute;
+    top: -8px; right: -9px;
+    width: 16px; height: 16px;
+    background: var(--ink-raised);
+    border-radius: 50%;
+    box-shadow: 0 calc(100% + 16px) 0 0 var(--ink-raised);
+    z-index: 2;
+  }
+
+  .ticket-info {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  /* Scale badge — the primary "how big a deal is this" signal
+     (Alicia Keys vs. a library concert). */
+  .scale-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    width: fit-content;
+  }
+  .scale-badge.major { background: var(--marquee); color: var(--ink); }
+  .scale-badge.mid-size { background: transparent; color: var(--slate); border: 1px solid var(--line); }
+  .scale-badge.local-community { background: transparent; color: var(--teal); border: 1px solid var(--teal); }
+
+  .ticket-title {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--cream);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .ticket-venue {
+    font-size: 0.85rem;
+    color: var(--slate);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ticket-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: 4px;
+  }
+
+  .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.03em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    border: 1px solid var(--line);
+    color: var(--slate);
+  }
+  .tag.price { color: var(--marquee); border-color: var(--marquee-dim); }
+
+  /* ---------- Empty / error states ---------- */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--slate);
+  }
+  .empty-state h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--marquee);
+    letter-spacing: 0.03em;
+    margin-bottom: 8px;
+  }
+  .empty-state code {
+    background: var(--ink-raised);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--teal);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ticket { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 class="marquee-title">Local Events Board</h1>
+  <div class="marquee-sub">Last refreshed <span id="generated-at">—</span> · run <code>scraper.py</code> daily to update</div>
+</header>
+
+<div class="controls">
+  <input id="search" type="text" placeholder="Search title or venue…" autocomplete="off">
+</div>
+<div class="controls">
+  <div class="filter-group">
+    <span class="filter-label">Scale</span>
+    <div id="scale-chips"></div>
+  </div>
+</div>
+<div class="controls">
+  <div class="filter-group">
+    <span class="filter-label">Type</span>
+    <div id="category-chips"></div>
+  </div>
+</div>
+
+<main>
+  <div id="status-line"></div>
+  <div class="grid" id="grid"></div>
+  <div class="empty-state" id="empty-state" style="display:none;">
+    <h2>No events yet</h2>
+    <p>Run <code>python3 scraper.py</code> from the project root to pull events, then reload this page.</p>
+  </div>
+</main>
+
+<script>
+let allEvents = [];
+let activeType = "All";
+let activeScale = "All";
+
+// Fixed, sensible order rather than whatever order they first appear in
+const SCALE_ORDER = ["All", "Major", "Mid-size", "Local-Community"];
+
+async function loadEvents() {
+  const statusLine = document.getElementById('status-line');
+  try {
+    const res = await fetch('events.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('events.json not found');
+    const data = await res.json();
+    allEvents = data.events || [];
+    document.getElementById('generated-at').textContent = formatGeneratedAt(data.generated_at);
+    buildScaleChips();
+    buildCategoryChips();
+    render();
+  } catch (err) {
+    statusLine.textContent = '';
+    document.getElementById('empty-state').style.display = 'block';
+    document.getElementById('empty-state').querySelector('h2').textContent =
+      allEvents.length === 0 && err.message.includes('not found') ? 'No events.json found' : 'No events yet';
+  }
+}
+
+function formatGeneratedAt(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+
+function buildScaleChips() {
+  const present = new Set(allEvents.map(e => e.scale).filter(Boolean));
+  const scales = SCALE_ORDER.filter(s => s === 'All' || present.has(s));
+  const container = document.getElementById('scale-chips');
+  container.innerHTML = '';
+  scales.forEach(scale => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (scale === activeScale ? ' active' : '');
+    btn.textContent = scale;
+    btn.addEventListener('click', () => {
+      activeScale = scale;
+      buildScaleChips();
+      render();
+    });
+    container.appendChild(btn);
+  });
+}
+
+function buildCategoryChips() {
+  const types = ['All', ...new Set(allEvents.map(e => e.event_type || e.category).filter(Boolean))];
+  const container = document.getElementById('category-chips');
+  container.innerHTML = '';
+  types.forEach(type => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (type === activeType ? ' active' : '');
+    btn.textContent = type;
+    btn.addEventListener('click', () => {
+      activeType = type;
+      buildCategoryChips();
+      render();
+    });
+    container.appendChild(btn);
+  });
+}
+
+function render() {
+  const query = document.getElementById('search').value.trim().toLowerCase();
+  const grid = document.getElementById('grid');
+  const statusLine = document.getElementById('status-line');
+  const emptyState = document.getElementById('empty-state');
+
+  let filtered = allEvents.filter(e => {
+    const matchesType = activeType === 'All' || (e.event_type || e.category) === activeType;
+    const matchesScale = activeScale === 'All' || e.scale === activeScale;
+    const haystack = `${e.title || ''} ${e.venue || ''}`.toLowerCase();
+    const matchesQuery = !query || haystack.includes(query);
+    return matchesType && matchesScale && matchesQuery;
+  });
+
+  statusLine.textContent = `${filtered.length} event${filtered.length === 1 ? '' : 's'} shown`;
+  grid.innerHTML = '';
+
+  if (filtered.length === 0) {
+    emptyState.style.display = 'block';
+    emptyState.querySelector('h2').textContent = allEvents.length === 0 ? 'No events yet' : 'No matches';
+    emptyState.querySelector('p').textContent = allEvents.length === 0
+      ? 'Run python3 scraper.py from the project root to pull events, then reload this page.'
+      : 'Try a different search term or filter.';
+    return;
+  }
+  emptyState.style.display = 'none';
+
+  filtered.forEach(e => grid.appendChild(buildCard(e)));
+}
+
+function buildCard(e) {
+  const a = document.createElement('a');
+  a.className = 'ticket';
+  a.href = e.url || '#';
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+
+  const { month, day, time } = splitDate(e);
+
+  a.innerHTML = `
+    <div class="ticket-date">
+      <span class="month">${month}</span>
+      <span class="day">${day}</span>
+      <span class="time">${time}</span>
+    </div>
+    <div class="ticket-info">
+      ${e.scale ? `<span class="scale-badge ${scaleClass(e.scale)}">${escapeHtml(e.scale)}</span>` : ''}
+      <div class="ticket-title">${escapeHtml(e.title || 'Untitled event')}</div>
+      <div class="ticket-venue">${escapeHtml(e.venue || 'Venue TBA')}</div>
+      <div class="ticket-meta">
+        ${(e.event_type || e.category) ? `<span class="tag">${escapeHtml(e.event_type || e.category)}</span>` : ''}
+        ${e.price_display ? `<span class="tag price">${escapeHtml(e.price_display)}</span>` : ''}
+        ${e.source ? `<span class="tag">${escapeHtml(e.source)}</span>` : ''}
+      </div>
+    </div>
+  `;
+  return a;
+}
+
+function scaleClass(scale) {
+  return (scale || '').toLowerCase().replace(/\s+/g, '-');
+}
+
+function splitDate(e) {
+  if (e.date) {
+    const d = new Date(e.date);
+    if (!isNaN(d)) {
+      return {
+        month: d.toLocaleString(undefined, { month: 'short' }).toUpperCase(),
+        day: d.getDate(),
+        time: d.toLocaleString(undefined, { hour: 'numeric', minute: '2-digit' }),
+      };
+    }
+  }
+  if (e.date_display) {
+    return { month: '', day: '?', time: e.date_display };
+  }
+  return { month: '', day: '?', time: 'TBA' };
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+document.getElementById('search').addEventListener('input', render);
+loadEvents();
+</script>
+
+</body>
+</html>

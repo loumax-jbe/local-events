@@ -1,0 +1,156 @@
+# =========================================================
+# Event Scraper Configuration
+# =========================================================
+# Run `python3 setup.py` for an interactive wizard that fills in
+# location, travel time, and event_type_filter below (asks for your
+# town, travel time, and event types, then writes the answers here).
+# Editing this file by hand works too — setup.py just makes the three
+# most personal settings easier to fill in correctly.
+
+location:
+  name: "Princeton, NJ"
+  lat: 40.3573
+  lng: -74.6672
+  radius_miles: 25       # search radius sent to Ticketmaster/SeatGeek
+  travel_minutes: 30      # what this radius was derived from — see setup.py
+  avg_speed_mph: 30        # assumption used to convert minutes -> radius
+
+# API keys — get free keys here:
+#   Ticketmaster: https://developer.ticketmaster.com/  (Discovery API, free tier)
+#   SeatGeek:     https://seatgeek.com/account/develop  (free, no approval wait)
+api_keys:
+  ticketmaster: "YOUR_TICKETMASTER_API_KEY"
+  seatgeek_client_id: "YOUR_SEATGEEK_CLIENT_ID"
+
+# Which sources to run. Set enabled: false to skip one without deleting it.
+sources:
+  ticketmaster:
+    enabled: true
+
+  seatgeek:
+    enabled: true
+
+  # ICS calendar feeds — the way to catch genuinely local events that
+  # never show up on ticketing platforms: school plays, PTA meetings,
+  # township rec programs, library storytimes, etc. Almost every school
+  # district, library, and town site has one of these, even if it's not
+  # obvious. Look for a "Subscribe" / "RSS" / "ICS" / "Add to Calendar" /
+  # calendar-icon link near any calendar widget on the site (very
+  # common on Finalsite-powered school sites, and on Communico/libnet.info
+  # -powered library sites — both patterns are common enough to be worth
+  # checking first before falling back to custom_html), or a public
+  # Google Calendar's "Secret address in iCal format" under that
+  # calendar's settings.
+  ics_calendars:
+    enabled: true
+    feeds:
+      - name: "Montgomery High School (MTSD)"
+        # Placeholder — replace with the real feed URL:
+        # 1. Go to https://mhs.mtsd.k12.nj.us/calendar
+        # 2. Click "Calendar RSS Feeds" above the calendar
+        # 3. Hover an ICAL button and choose "Get Standard iCal URL"
+        # 4. Paste that URL below
+        url: "PASTE_ICS_FEED_URL_HERE"
+        page_url: "https://mhs.mtsd.k12.nj.us/calendar"
+        category: "School"
+
+      - name: "Princeton Public Library"
+        # This site runs on Communico (libnet.info), a platform used by
+        # many public libraries — the events page is a JS app with no
+        # server-rendered HTML, so custom_html scraping won't work here,
+        # but Communico has its own public "Add to Calendar" button that
+        # does the same job as an ICS feed. Placeholder — replace with
+        # the real feed URL:
+        # 1. Go to https://princetonlibrary.libnet.info/events and set
+        #    any filters you want (event type, date range) — the feed
+        #    will match whatever filters are showing
+        # 2. Look for an "Add to Calendar" or calendar-icon button near
+        #    the top of the events list
+        # 3. Choose the iCal/subscribe option and copy the generated URL
+        # 4. Paste that URL below
+        # (If you don't see that button, RSS/iCal export may not be
+        # turned on for this library yet — Communico's help docs note
+        # it sometimes needs to be enabled on their end; the library's
+        # own website contact would need to request that.)
+        url: "PASTE_ICS_FEED_URL_HERE"
+        page_url: "https://princetonlibrary.libnet.info/events"
+        category: "Library"
+
+      # Example second feed — a public Google Calendar for a rec dept,
+      # library, or town. Get the "Secret address in iCal format" from
+      # that calendar's settings (must be a calendar you can access).
+      # - name: "Montgomery Township Recreation"
+      #   url: "PASTE_ICS_FEED_URL_HERE"
+      #   page_url: "https://www.montgomerynj.gov/recreation"
+      #   category: "Community"
+
+  # Hand-entered events — Instagram posts, flyers, word of mouth. See
+  # manual_events.yaml to add one; takes about 10 seconds per event.
+  manual:
+    enabled: true
+
+  # HTML scraping fallback — only needed for sites with no ICS feed at
+  # all. More fragile (breaks on redesigns) so prefer ics_calendars
+  # whenever a site offers one.
+  custom_html:
+    enabled: true
+    # Each entry describes one page to scrape. CSS selectors will need
+    # updating if the site redesigns — that's expected and normal.
+    sites:
+      - name: "McCarter Theatre"
+        url: "https://mccarter.org/events/"
+        event_selector: ".event-card"
+        title_selector: ".event-card__title"
+        date_selector: ".event-card__date"
+        link_selector: "a"
+        link_attr: "href"
+        # This venue hosts touring professional acts, not just local
+        # community shows — Mid-size is a reasonable default. Set to
+        # "Major" or "Local-Community" if you know better for a given
+        # venue.
+        scale: "Mid-size"
+
+      - name: "State Theatre NJ"
+        url: "https://www.stnj.org/events"
+        event_selector: ".event-item"
+        title_selector: ".event-item__title"
+        date_selector: ".event-item__date"
+        link_selector: "a"
+        link_attr: "href"
+        scale: "Mid-size"
+
+# Tuning for the Major / Mid-size / Local-Community scale classification
+# (see classify.py). Ticketmaster events are classified by top ticket
+# price since the API doesn't expose a popularity figure; SeatGeek events
+# use its own 0-1 popularity score instead. Adjust these price cutoffs if
+# "Major" is catching too much or too little in your area.
+classification:
+  major_price_threshold: 150   # top ticket price >= this -> Major
+  midsize_price_threshold: 50  # top ticket price >= this -> Mid-size
+
+# Optional keyword filter — leave empty to keep everything.
+# Example: ["music", "blues", "jazz", "folk", "concert"]
+keyword_filter: []
+
+# Optional event-type filter — keeps only these event_type values (see
+# classify.py for the full list: Concert, Theater & Performing Arts,
+# Comedy, Family & Kids, Festival & Fair, Sports, Community & Civic,
+# School & Youth, Film, Other). Leave empty to keep every type.
+# Set via `python3 setup.py`, or edit directly, e.g.:
+#   event_type_filter: ["Concert", "Theater & Performing Arts", "School & Youth"]
+event_type_filter: []
+
+# How many days ahead to pull events for
+# How many days ahead to pull events for. Set via `python3 setup.py`
+# (asks as a preset menu: 2 weeks / 1 month / 2 months / 3 months /
+# 6 months / custom), or edit directly.
+days_ahead: 60
+
+# Where the SQLite DB and exported JSON live
+database_path: "data/events.db"
+export_json_path: "dashboard/events.json"
+manual_events_path: "manual_events.yaml"
+# Powers the hidden status page (dashboard/status.html) — not linked from
+# the main dashboard, open it directly to see what sources were checked
+# on the last run and spot anything broken or missing.
+source_status_path: "dashboard/sources_status.json"

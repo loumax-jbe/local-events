@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Source Status — Local Events Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #14181C;
+    --ink-raised: #1C2229;
+    --marquee: #E8A33D;
+    --marquee-dim: #7A5A2A;
+    --teal: #4A8A80;
+    --cream: #F0EAD6;
+    --slate: #8A93A0;
+    --line: #2A313A;
+    --danger: #C4694B;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--cream);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+  }
+  header {
+    padding: 32px 24px 22px;
+    border-bottom: 2px solid var(--line);
+  }
+  .title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    letter-spacing: 0.03em;
+    color: var(--marquee);
+    margin: 0;
+  }
+  .sub {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--slate);
+    font-size: 0.82rem;
+    margin-top: 6px;
+  }
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 28px 24px 80px;
+  }
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--slate);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot.ok { background: var(--teal); }
+  .dot.empty { background: var(--marquee); }
+  .dot.error { background: var(--danger); }
+  .dot.not_configured { background: var(--slate); }
+  .dot.disabled { background: var(--line); border: 1px solid var(--slate); }
+
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--slate);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  td {
+    padding: 12px;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.88rem;
+    vertical-align: top;
+  }
+  tr:hover td { background: var(--ink-raised); }
+
+  .source-name { font-weight: 600; }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+  }
+  .status-pill.ok { color: var(--teal); border-color: var(--teal); }
+  .status-pill.empty { color: var(--marquee); border-color: var(--marquee-dim); }
+  .status-pill.error { color: var(--danger); border-color: var(--danger); }
+  .status-pill.not_configured { color: var(--slate); }
+  .status-pill.disabled { color: var(--slate); }
+
+  .count { font-family: 'IBM Plex Mono', monospace; color: var(--cream); }
+  .detail { color: var(--slate); font-size: 0.8rem; }
+  .checked-at { color: var(--slate); font-size: 0.78rem; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--slate);
+  }
+  .empty-state code {
+    background: var(--ink-raised);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--teal);
+  }
+
+  .back-link {
+    display: inline-block;
+    margin-top: 24px;
+    color: var(--slate);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    text-decoration: none;
+    border-bottom: 1px dotted var(--slate);
+  }
+  .back-link:hover { color: var(--marquee); border-color: var(--marquee); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 class="title">Source Status</h1>
+  <div class="sub">Last checked <span id="generated-at">—</span> · what was scraped on the last run, and what's missing or broken</div>
+</header>
+
+<main>
+  <div class="legend">
+    <span><span class="dot ok"></span> ok — found events</span>
+    <span><span class="dot empty"></span> empty — ran fine, zero events (worth a look)</span>
+    <span><span class="dot error"></span> error — failed to run</span>
+    <span><span class="dot not_configured"></span> not configured — missing key/URL/file</span>
+    <span><span class="dot disabled"></span> disabled — enabled: false in config.yaml</span>
+  </div>
+
+  <table id="status-table" style="display:none;">
+    <thead>
+      <tr>
+        <th>Source</th>
+        <th>Status</th>
+        <th>Events</th>
+        <th>Detail</th>
+        <th>Checked</th>
+      </tr>
+    </thead>
+    <tbody id="status-body"></tbody>
+  </table>
+
+  <div class="empty-state" id="empty-state">
+    <p>No status data yet. Run <code>python3 scraper.py</code> at least once, then reload this page.</p>
+  </div>
+
+  <a class="back-link" href="index.html">← Back to the events board</a>
+</main>
+
+<script>
+async function loadStatus() {
+  try {
+    const res = await fetch('sources_status.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('not found');
+    const data = await res.json();
+
+    document.getElementById('generated-at').textContent = formatDate(data.generated_at);
+
+    const sources = data.sources || [];
+    if (sources.length === 0) return; // leave empty state showing
+
+    document.getElementById('empty-state').style.display = 'none';
+    const table = document.getElementById('status-table');
+    table.style.display = 'table';
+    const body = document.getElementById('status-body');
+    body.innerHTML = '';
+
+    sources.forEach(s => {
+      const tr = document.createElement('tr');
+      const detailText = s.error || s.detail || '';
+      tr.innerHTML = `
+        <td class="source-name">${escapeHtml(s.name)}</td>
+        <td><span class="status-pill ${s.status}"><span class="dot ${s.status}"></span>${escapeHtml(s.status.replace('_',' '))}</span></td>
+        <td class="count">${s.count || 0}</td>
+        <td class="detail">${escapeHtml(detailText)}</td>
+        <td class="checked-at">${formatDate(s.checked_at)}</td>
+      `;
+      body.appendChild(tr);
+    });
+  } catch (err) {
+    // leave the empty state showing
+  }
+}
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d)) return '—';
+  return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+loadStatus();
+</script>
+
+</body>
+</html>
