@@ -26,12 +26,10 @@
 #   price_display: e.g. "$12" or "Free" — optional
 #   source_note: where you heard about it, e.g. "Instagram @mhs_cougar_den"
 #                (shows up on the card as a small tag)
-#   address:     street address, e.g. "1400 Route 601, Skillman, NJ" —
-#                optional; geocoded once so this event can show up in
-#                "What's Going On In Our Area" by real distance. Leave
-#                blank and it defaults to config.yaml's main location,
-#                which is fine unless this particular event is somewhere
-#                else entirely.
+#   county:      which county this is in, e.g. "Somerset County, NJ" —
+#                optional, but it's what visitors filter by in "What's
+#                Going On In Our Area"; an event without one only shows
+#                up when no county filter is applied.
 
 events:
   - title: "Annie Jr."
@@ -42,6 +40,7 @@ events:
     event_type: "School & Youth"
     price_display: ""
     source_note: "Instagram"
+    county: "Somerset County, NJ"
 
   # - title: "Another event you spot on Instagram"
   #   date: "2026-08-02T18:00"
@@ -51,3 +50,4 @@ events:
   #   event_type: ""
   #   price_display: ""
   #   source_note: "Instagram"
+  #   county: ""

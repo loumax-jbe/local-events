@@ -10,21 +10,17 @@
 # admin panel needed.
 #
 # Everything added here flows through the same daily scraper.py run as
-# everything else, shows up in "Your Local Picks", and (if it geocodes
-# successfully) becomes searchable in "What's Going On In Our Area" by
-# distance from whatever address a visitor types in.
+# everything else, and shows up in "What's Going On In Our Area" —
+# tagged with whatever county you set, so visitors can filter by it.
 #
 # Two kinds of entries — prefer an ICS calendar feed whenever the site
 # has one (see README section 4 for how to find one); fall back to
 # custom_html only when it doesn't (see README section 5 for how to find
 # the CSS selectors).
 #
-# `address` is optional on both. If you set it, it's geocoded once (via
-# the same free OpenStreetMap lookup config.yaml's own location uses)
-# and lets "What's Going On In Our Area" work out real distance to this
-# venue. If you leave it out, the venue defaults to config.yaml's main
-# location — fine for anything actually near you, but skip live-search
-# accuracy for anything far from your own town.
+# `county` is optional on both, but it's what visitors filter by, so a
+# venue without one only shows up when no county filter is applied. Set
+# it to whatever this venue's county actually is, e.g. "Mercer County, NJ".
 #
 # -----------------------------------------------------------------
 # ics_calendars:
@@ -32,7 +28,7 @@
 #     url: "PASTE_ICS_FEED_URL_HERE"
 #     page_url: "https://example.org/events"
 #     category: "Library"
-#     address: "123 Main St, Example Town, NJ"
+#     county: "Example County, NJ"
 #
 # custom_html:
 #   - name: "Example Venue"
@@ -43,7 +39,7 @@
 #     link_selector: "a"
 #     link_attr: "href"
 #     scale: "Mid-size"
-#     address: "456 Main St, Example Town, NJ"
+#     county: "Example County, NJ"
 # -----------------------------------------------------------------
 
 ics_calendars: []

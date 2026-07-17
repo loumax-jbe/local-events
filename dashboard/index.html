@@ -16,7 +16,6 @@
     --cream: #F0EAD6;
     --slate: #8A93A0;
     --line: #2A313A;
-    --error: #D9695F;
   }
 
   * { box-sizing: border-box; }
@@ -63,9 +62,6 @@
     margin: 0 auto;
     padding: 40px 24px 8px;
   }
-  .section + .section {
-    border-top: 2px solid var(--line);
-  }
 
   .section-title {
     font-family: 'Bebas Neue', sans-serif;
@@ -94,7 +90,7 @@
     align-items: center;
   }
 
-  #local-search, #live-search-text {
+  #search-text {
     flex: 1 1 240px;
     background: var(--ink-raised);
     border: 1px solid var(--line);
@@ -104,8 +100,8 @@
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.95rem;
   }
-  #local-search:focus, #live-search-text:focus { outline: 2px solid var(--marquee); outline-offset: 1px; }
-  #local-search::placeholder, #live-search-text::placeholder { color: var(--slate); }
+  #search-text:focus { outline: 2px solid var(--marquee); outline-offset: 1px; }
+  #search-text::placeholder { color: var(--slate); }
 
   .filter-group {
     display: flex;
@@ -143,16 +139,7 @@
   .chip.active { background: var(--marquee); border-color: var(--marquee); color: var(--ink); font-weight: 600; }
   .chip:focus-visible { outline: 2px solid var(--marquee); outline-offset: 2px; }
 
-  /* ---------- Live search form ---------- */
-  .search-form {
-    max-width: 1100px;
-    margin: 18px auto 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-    align-items: flex-end;
-  }
-
+  /* ---------- Date range ---------- */
   .field {
     display: flex;
     flex-direction: column;
@@ -165,9 +152,7 @@
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
-  .field input[type="text"],
-  .field input[type="date"],
-  .field select {
+  .field input[type="date"] {
     background: var(--ink-raised);
     border: 1px solid var(--line);
     color: var(--cream);
@@ -176,42 +161,7 @@
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.95rem;
   }
-  .field input:focus, .field select:focus { outline: 2px solid var(--marquee); outline-offset: 1px; }
-
-  #search-address { min-width: 220px; }
-
-  .field-types {
-    flex: 1 1 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .btn-primary {
-    background: var(--marquee);
-    color: var(--ink);
-    border: none;
-    padding: 11px 22px;
-    border-radius: 4px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-weight: 600;
-    font-size: 0.85rem;
-    letter-spacing: 0.03em;
-    cursor: pointer;
-    transition: opacity 0.15s ease;
-  }
-  .btn-primary:hover { opacity: 0.9; }
-  .btn-primary:disabled { opacity: 0.6; cursor: default; }
-  .btn-primary:focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; }
-
-  .search-error {
-    max-width: 1100px;
-    margin: 10px auto 0;
-    padding: 0;
-    color: var(--error);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.8rem;
-  }
+  .field input:focus { outline: 2px solid var(--marquee); outline-offset: 1px; }
 
   /* ---------- Event grid ---------- */
   main {
@@ -390,89 +340,53 @@
 
 <header>
   <h1 class="marquee-title">Local Events Board</h1>
-  <div class="marquee-sub">Two ways to find something to do: search by address above, or browse your local picks below.</div>
+  <div class="marquee-sub">Filter by county, category, and date to see what's happening near you.</div>
 </header>
 
-<section class="section" id="live-search">
+<section class="section" id="events">
   <h2 class="section-title">What's Going On In Our Area</h2>
-  <div class="section-sub">Searches our curated list of local venues, libraries, and calendars — not big ticketing platforms — by distance from wherever you're headed.</div>
-
-  <form class="search-form" id="search-form">
-    <div class="field">
-      <label for="search-address">Address</label>
-      <input id="search-address" type="text" placeholder="e.g. 65 Witherspoon St, Princeton, NJ" autocomplete="off" required>
-    </div>
-    <div class="field">
-      <label for="search-minutes">Travel time</label>
-      <select id="search-minutes">
-        <option value="15">15 min</option>
-        <option value="30" selected>30 min</option>
-        <option value="45">45 min</option>
-        <option value="60">60 min</option>
-        <option value="90">90 min</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="search-from">From</label>
-      <input id="search-from" type="date">
-    </div>
-    <div class="field">
-      <label for="search-to">To</label>
-      <input id="search-to" type="date">
-    </div>
-    <button type="submit" class="btn-primary" id="search-submit">Find Events</button>
-
-    <div class="field-types">
-      <span class="filter-label">Categories (leave all unselected for everything)</span>
-      <div class="chip-row" id="search-type-chips"></div>
-    </div>
-  </form>
-  <div class="search-error" id="search-error"></div>
+  <div class="section-sub">Last refreshed <span id="generated-at">—</span> · run <code>scraper.py</code> daily to update · local venues, libraries &amp; calendars only</div>
 
   <div class="controls">
-    <input id="live-search-text" type="text" placeholder="Filter results by title or venue…" autocomplete="off">
+    <input id="search-text" type="text" placeholder="Search title or venue…" autocomplete="off">
   </div>
+
+  <div class="controls">
+    <div class="filter-group">
+      <span class="filter-label">County</span>
+      <div class="chip-row" id="county-chips"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="filter-group">
+      <span class="filter-label">Category</span>
+      <div class="chip-row" id="category-chips"></div>
+    </div>
+  </div>
+
   <div class="controls">
     <div class="filter-group">
       <span class="filter-label">Scale</span>
-      <div class="chip-row" id="live-scale-chips"></div>
+      <div class="chip-row" id="scale-chips"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="field">
+      <label for="date-from">From</label>
+      <input id="date-from" type="date">
+    </div>
+    <div class="field">
+      <label for="date-to">To</label>
+      <input id="date-to" type="date">
     </div>
   </div>
 
   <main>
-    <div class="status-line" id="live-status-line"></div>
-    <div class="grid" id="live-grid"></div>
-    <div class="empty-state" id="live-empty-state" style="display:block;">
-      <h2>Search for events</h2>
-      <p>Enter an address above and click <code>Find Events</code> to see nearby local events.</p>
-    </div>
-  </main>
-</section>
-
-<section class="section" id="local-picks">
-  <h2 class="section-title">Your Local Picks</h2>
-  <div class="section-sub">Last refreshed <span id="generated-at">—</span> · run <code>scraper.py</code> daily to update · school, library &amp; community sources only</div>
-
-  <div class="controls">
-    <input id="local-search" type="text" placeholder="Search title or venue…" autocomplete="off">
-  </div>
-  <div class="controls">
-    <div class="filter-group">
-      <span class="filter-label">Scale</span>
-      <div class="chip-row" id="local-scale-chips"></div>
-    </div>
-  </div>
-  <div class="controls">
-    <div class="filter-group">
-      <span class="filter-label">Type</span>
-      <div class="chip-row" id="local-category-chips"></div>
-    </div>
-  </div>
-
-  <main>
-    <div class="status-line" id="local-status-line"></div>
-    <div class="grid" id="local-grid"></div>
-    <div class="empty-state" id="local-empty-state" style="display:none;">
+    <div class="status-line" id="status-line"></div>
+    <div class="grid" id="grid"></div>
+    <div class="empty-state" id="empty-state" style="display:none;">
       <h2>No events yet</h2>
       <p>Run <code>python3 scraper.py</code> from the project root to pull events, then reload this page.</p>
     </div>
@@ -480,23 +394,25 @@
 </section>
 
 <script>
-// ===================================================================
-// Fill this in after deploying the Cloudflare Worker (see README
-// "Enable live location search" section). Something like:
-//   const WORKER_URL = "https://local-events-search.yoursubdomain.workers.dev";
-// ===================================================================
-const WORKER_URL = "";
-
-const EVENT_TYPES = [
-  "Concert", "Theater & Performing Arts", "Comedy", "Family & Kids",
-  "Festival & Fair", "Sports", "Community & Civic", "School & Youth",
-  "Film", "Other",
-];
-
 // Fixed, sensible order rather than whatever order they first appear in
 const SCALE_ORDER = ["All", "Major", "Mid-size", "Local-Community"];
 
-// ---------- Shared card rendering ----------
+let allEvents = [];
+const selectedCounties = new Set();
+const selectedTypes = new Set();
+let activeScale = 'All';
+
+const searchInput = document.getElementById('search-text');
+const fromInput = document.getElementById('date-from');
+const toInput = document.getElementById('date-to');
+const countyChipsEl = document.getElementById('county-chips');
+const categoryChipsEl = document.getElementById('category-chips');
+const scaleChipsEl = document.getElementById('scale-chips');
+const statusLine = document.getElementById('status-line');
+const grid = document.getElementById('grid');
+const emptyState = document.getElementById('empty-state');
+
+// ---------- Card rendering ----------
 
 function escapeHtml(str) {
   const div = document.createElement('div');
@@ -545,6 +461,7 @@ function buildCard(e) {
       <div class="ticket-title">${escapeHtml(e.title || 'Untitled event')}</div>
       <div class="ticket-venue">${escapeHtml(e.venue || 'Venue TBA')}</div>
       <div class="ticket-meta">
+        ${e.county ? `<span class="tag">${escapeHtml(e.county)}</span>` : ''}
         ${(e.event_type || e.category) ? `<span class="tag">${escapeHtml(e.event_type || e.category)}</span>` : ''}
         ${e.price_display ? `<span class="tag price">${escapeHtml(e.price_display)}</span>` : ''}
         ${e.source ? `<span class="tag">${escapeHtml(e.source)}</span>` : ''}
@@ -560,152 +477,112 @@ function formatGeneratedAt(iso) {
   return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 }
 
-// ---------- Reusable filterable grid (one instance per section) ----------
+// ---------- Filter chips ----------
 
-function createFilterableGrid({ searchInput, scaleChipsContainer, categoryChipsContainer, grid, statusLine, emptyState, emptyDefaultTitle, emptyDefaultText }) {
-  let allEvents = [];
-  let activeType = 'All';
-  let activeScale = 'All';
-
-  function buildScaleChips() {
-    const present = new Set(allEvents.map(e => e.scale).filter(Boolean));
-    const scales = SCALE_ORDER.filter(s => s === 'All' || present.has(s));
-    scaleChipsContainer.innerHTML = '';
-    scales.forEach(scale => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'chip' + (scale === activeScale ? ' active' : '');
-      btn.textContent = scale;
-      btn.addEventListener('click', () => {
-        activeScale = scale;
-        buildScaleChips();
-        render();
-      });
-      scaleChipsContainer.appendChild(btn);
-    });
-  }
-
-  function buildCategoryChips() {
-    if (!categoryChipsContainer) return;
-    const types = ['All', ...new Set(allEvents.map(e => e.event_type || e.category).filter(Boolean))];
-    categoryChipsContainer.innerHTML = '';
-    types.forEach(type => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'chip' + (type === activeType ? ' active' : '');
-      btn.textContent = type;
-      btn.addEventListener('click', () => {
-        activeType = type;
-        buildCategoryChips();
-        render();
-      });
-      categoryChipsContainer.appendChild(btn);
-    });
-  }
-
-  function render() {
-    const query = (searchInput?.value || '').trim().toLowerCase();
-
-    const filtered = allEvents.filter(e => {
-      const matchesType = activeType === 'All' || (e.event_type || e.category) === activeType;
-      const matchesScale = activeScale === 'All' || e.scale === activeScale;
-      const haystack = `${e.title || ''} ${e.venue || ''}`.toLowerCase();
-      const matchesQuery = !query || haystack.includes(query);
-      return matchesType && matchesScale && matchesQuery;
-    });
-
-    statusLine.textContent = `${filtered.length} event${filtered.length === 1 ? '' : 's'} shown`;
-    grid.innerHTML = '';
-
-    if (filtered.length === 0) {
-      emptyState.style.display = 'block';
-      emptyState.querySelector('h2').textContent = allEvents.length === 0 ? emptyDefaultTitle : 'No matches';
-      emptyState.querySelector('p').textContent = allEvents.length === 0
-        ? emptyDefaultText
-        : 'Try a different search term or filter.';
-      return;
-    }
-    emptyState.style.display = 'none';
-    filtered.forEach(e => grid.appendChild(buildCard(e)));
-  }
-
-  function setEvents(events) {
-    allEvents = events;
-    activeType = 'All';
-    activeScale = 'All';
-    buildScaleChips();
-    buildCategoryChips();
-    render();
-  }
-
-  if (searchInput) searchInput.addEventListener('input', render);
-
-  return { setEvents, render };
-}
-
-// ---------- "Your Local Picks" section ----------
-
-const localGrid = createFilterableGrid({
-  searchInput: document.getElementById('local-search'),
-  scaleChipsContainer: document.getElementById('local-scale-chips'),
-  categoryChipsContainer: document.getElementById('local-category-chips'),
-  grid: document.getElementById('local-grid'),
-  statusLine: document.getElementById('local-status-line'),
-  emptyState: document.getElementById('local-empty-state'),
-  emptyDefaultTitle: 'No events yet',
-  emptyDefaultText: 'Run python3 scraper.py from the project root to pull events, then reload this page.',
-});
-
-async function loadLocalPicks() {
-  const statusLine = document.getElementById('local-status-line');
-  const emptyState = document.getElementById('local-empty-state');
-  try {
-    const res = await fetch('events.json', { cache: 'no-store' });
-    if (!res.ok) throw new Error('events.json not found');
-    const data = await res.json();
-    // The live search below is local/smaller-venue only too, so
-    // Ticketmaster/SeatGeek (if enabled in config.yaml) don't surface
-    // anywhere on this dashboard — this section sticks to the sources
-    // that make it "local": ICS feeds, manual entries, and scraped
-    // venue sites.
-    const events = (data.events || []).filter(e => e.source !== 'Ticketmaster' && e.source !== 'SeatGeek');
-    document.getElementById('generated-at').textContent = formatGeneratedAt(data.generated_at);
-    localGrid.setEvents(events);
-  } catch (err) {
-    statusLine.textContent = '';
-    emptyState.style.display = 'block';
-    emptyState.querySelector('h2').textContent = err.message.includes('not found') ? 'No events.json found' : 'No events yet';
-  }
-}
-loadLocalPicks();
-
-// ---------- Live search section ----------
-
-const selectedTypes = new Set();
-
-function buildTypeToggle() {
-  const container = document.getElementById('search-type-chips');
-  EVENT_TYPES.forEach(type => {
+// Multi-select toggle row (County, Category): click to add/remove, no
+// selection means "don't filter on this" rather than "match nothing".
+function buildMultiSelectChips(container, values, selectedSet) {
+  container.innerHTML = '';
+  values.forEach(value => {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'chip';
-    btn.textContent = type;
-    btn.setAttribute('aria-pressed', 'false');
+    btn.className = 'chip' + (selectedSet.has(value) ? ' active' : '');
+    btn.textContent = value;
+    btn.setAttribute('aria-pressed', selectedSet.has(value) ? 'true' : 'false');
     btn.addEventListener('click', () => {
-      if (selectedTypes.has(type)) {
-        selectedTypes.delete(type);
+      if (selectedSet.has(value)) {
+        selectedSet.delete(value);
         btn.classList.remove('active');
         btn.setAttribute('aria-pressed', 'false');
       } else {
-        selectedTypes.add(type);
+        selectedSet.add(value);
         btn.classList.add('active');
         btn.setAttribute('aria-pressed', 'true');
       }
+      render();
     });
     container.appendChild(btn);
   });
 }
-buildTypeToggle();
+
+// Single-select row (Scale): click one at a time, "All" resets it.
+function buildScaleChips() {
+  const present = new Set(allEvents.map(e => e.scale).filter(Boolean));
+  const scales = SCALE_ORDER.filter(s => s === 'All' || present.has(s));
+  scaleChipsEl.innerHTML = '';
+  scales.forEach(scale => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'chip' + (scale === activeScale ? ' active' : '');
+    btn.textContent = scale;
+    btn.addEventListener('click', () => {
+      activeScale = scale;
+      buildScaleChips();
+      render();
+    });
+    scaleChipsEl.appendChild(btn);
+  });
+}
+
+// ---------- Filter + render ----------
+
+function render() {
+  const query = searchInput.value.trim().toLowerCase();
+  const fromDate = fromInput.value;
+  const toDate = toInput.value;
+
+  const filtered = allEvents.filter(e => {
+    const matchesCounty = selectedCounties.size === 0 || selectedCounties.has(e.county);
+    const matchesType = selectedTypes.size === 0 || selectedTypes.has(e.event_type || e.category);
+    const matchesScale = activeScale === 'All' || e.scale === activeScale;
+    const haystack = `${e.title || ''} ${e.venue || ''}`.toLowerCase();
+    const matchesQuery = !query || haystack.includes(query);
+    // Events with only a date_display (no parseable ISO date) can't be
+    // checked against the range — keep them rather than dropping a
+    // genuinely local event just because we can't verify its date.
+    const day = e.date ? e.date.slice(0, 10) : null;
+    const matchesDate = !day || ((!fromDate || day >= fromDate) && (!toDate || day <= toDate));
+    return matchesCounty && matchesType && matchesScale && matchesQuery && matchesDate;
+  });
+
+  filtered.sort((a, b) => {
+    if (!a.date && !b.date) return 0;
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
+  });
+
+  statusLine.textContent = `${filtered.length} event${filtered.length === 1 ? '' : 's'} shown`;
+  grid.innerHTML = '';
+
+  if (filtered.length === 0) {
+    emptyState.style.display = 'block';
+    emptyState.querySelector('h2').textContent = allEvents.length === 0 ? 'No events yet' : 'No matches';
+    emptyState.querySelector('p').textContent = allEvents.length === 0
+      ? 'Run python3 scraper.py from the project root to pull events, then reload this page.'
+      : 'Try different counties, categories, or a wider date range.';
+    return;
+  }
+  emptyState.style.display = 'none';
+  filtered.forEach(e => grid.appendChild(buildCard(e)));
+}
+
+function setEvents(events) {
+  allEvents = events;
+  selectedCounties.clear();
+  selectedTypes.clear();
+  activeScale = 'All';
+
+  const counties = [...new Set(events.map(e => e.county).filter(Boolean))].sort();
+  const types = [...new Set(events.map(e => e.event_type || e.category).filter(Boolean))].sort();
+
+  buildMultiSelectChips(countyChipsEl, counties, selectedCounties);
+  buildMultiSelectChips(categoryChipsEl, types, selectedTypes);
+  buildScaleChips();
+  render();
+}
+
+// ---------- Load ----------
 
 function isoDate(d) {
   return d.toISOString().slice(0, 10);
@@ -715,73 +592,34 @@ function isoDate(d) {
   const today = new Date();
   const to = new Date(today);
   to.setDate(to.getDate() + 60);
-  const fromInput = document.getElementById('search-from');
-  const toInput = document.getElementById('search-to');
   fromInput.value = isoDate(today);
   toInput.value = isoDate(to);
   fromInput.min = isoDate(today);
   toInput.min = isoDate(today);
 })();
 
-const liveGrid = createFilterableGrid({
-  searchInput: document.getElementById('live-search-text'),
-  scaleChipsContainer: document.getElementById('live-scale-chips'),
-  categoryChipsContainer: null,
-  grid: document.getElementById('live-grid'),
-  statusLine: document.getElementById('live-status-line'),
-  emptyState: document.getElementById('live-empty-state'),
-  emptyDefaultTitle: 'No matches',
-  emptyDefaultText: 'No curated local venue fell within that distance/date range — try a wider travel time or a different date range.',
-});
-
-document.getElementById('search-form').addEventListener('submit', async (evt) => {
-  evt.preventDefault();
-
-  const address = document.getElementById('search-address').value.trim();
-  const minutes = document.getElementById('search-minutes').value;
-  const from = document.getElementById('search-from').value;
-  const to = document.getElementById('search-to').value;
-  const errorEl = document.getElementById('search-error');
-  errorEl.textContent = '';
-
-  if (!address) {
-    errorEl.textContent = 'Enter an address to search.';
-    return;
-  }
-  if (from && to && to < from) {
-    errorEl.textContent = '"To" date must be on or after "From" date.';
-    return;
-  }
-  if (!WORKER_URL) {
-    errorEl.textContent = 'Live search isn\'t configured yet — set WORKER_URL near the top of this page\'s <script> after deploying the Cloudflare Worker (see README).';
-    return;
-  }
-
-  const submitBtn = document.getElementById('search-submit');
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Searching…';
-  document.getElementById('live-status-line').textContent = 'Searching…';
-  document.getElementById('live-empty-state').style.display = 'none';
-  document.getElementById('live-grid').innerHTML = '';
-
-  const params = new URLSearchParams({ address, minutes, from, to });
-  if (selectedTypes.size) params.set('types', [...selectedTypes].join(','));
-
+async function loadEvents() {
   try {
-    const res = await fetch(`${WORKER_URL}/search?${params.toString()}`);
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.error || `Search failed (${res.status})`);
-    }
-    liveGrid.setEvents(data.events || []);
+    const res = await fetch('events.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('events.json not found');
+    const data = await res.json();
+    // Ticketmaster/SeatGeek (if enabled in config.yaml) are excluded —
+    // this board is local/smaller venues only.
+    const events = (data.events || []).filter(e => e.source !== 'Ticketmaster' && e.source !== 'SeatGeek');
+    document.getElementById('generated-at').textContent = formatGeneratedAt(data.generated_at);
+    setEvents(events);
   } catch (err) {
-    errorEl.textContent = err.message || 'Something went wrong reaching the search service. Try again.';
-    liveGrid.setEvents([]);
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Find Events';
+    statusLine.textContent = '';
+    emptyState.style.display = 'block';
+    emptyState.querySelector('h2').textContent = err.message.includes('not found') ? 'No events.json found' : 'No events yet';
   }
-});
+}
+
+searchInput.addEventListener('input', render);
+fromInput.addEventListener('input', render);
+toInput.addEventListener('input', render);
+
+loadEvents();
 </script>
 
 </body>

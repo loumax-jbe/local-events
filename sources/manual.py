@@ -12,7 +12,6 @@ import yaml
 
 from normalize import make_event
 import classify
-import geocode
 import runlog
 
 DEFAULT_PATH = "manual_events.yaml"
@@ -47,7 +46,7 @@ def fetch(config):
         )
 
         source_note = raw.get("source_note", "Manually added")
-        venue_lat, venue_lng = _venue_location(raw, config)
+        county = raw.get("county")
 
         events.append(
             make_event(
@@ -61,8 +60,7 @@ def fetch(config):
                 price_display=raw.get("price_display") or None,
                 event_type=event_type,
                 scale=scale,
-                venue_lat=venue_lat,
-                venue_lng=venue_lng,
+                county=county,
             )
         )
 
@@ -72,22 +70,3 @@ def fetch(config):
     else:
         runlog.record("Manual quick-add", status="empty", detail=f"{path} has no entries yet")
     return events
-
-
-def _venue_location(raw, config):
-    """
-    Geocodes this entry's `address:` (if set) — manual entries are
-    scattered word-of-mouth events, so an address is more likely to vary
-    per-event than for a school/library feed. Falls back to config.yaml's
-    main location if no address is set or geocoding fails.
-    """
-    address = raw.get("address")
-    if address:
-        try:
-            lat, lng, _ = geocode.geocode_town(address)
-            return lat, lng
-        except Exception as exc:
-            print(f"  [manual] {raw.get('title')}: couldn't geocode address {address!r} ({exc}) — falling back to config.yaml's main location")
-
-    loc = config.get("location", {})
-    return loc.get("lat"), loc.get("lng")

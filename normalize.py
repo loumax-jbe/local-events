@@ -23,8 +23,7 @@ EVENT_FIELDS = [
     "price_display",
     "event_type",   # Concert, Theater & Performing Arts, School & Youth, etc. See classify.py
     "scale",         # Major / Mid-size / Local-Community — see classify.py
-    "venue_lat",      # geocoded venue coordinates — powers the live "What's Going On In Our Area" distance filter
-    "venue_lng",
+    "county",         # which county this venue is in — powers the "What's Going On In Our Area" county filter
 ]
 
 

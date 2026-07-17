@@ -36,7 +36,6 @@ import requests
 
 from normalize import make_event
 import classify
-import geocode
 import runlog
 
 HEADERS = {
@@ -60,7 +59,7 @@ def fetch(config):
             runlog.record(name, status="not_configured", error="No feed URL set in config.yaml — this entry is still a placeholder")
             continue
         try:
-            feed_events = _fetch_feed(feed, days_ahead, config)
+            feed_events = _fetch_feed(feed, days_ahead)
             print(f"  [ics_calendar] {name}: {len(feed_events)} events")
             events.extend(feed_events)
             if feed_events:
@@ -77,8 +76,8 @@ def fetch(config):
     return events
 
 
-def _fetch_feed(feed, days_ahead, config):
-    venue_lat, venue_lng = _venue_location(feed, config)
+def _fetch_feed(feed, days_ahead):
+    county = feed.get("county")
 
     resp = requests.get(feed["url"], headers=HEADERS, timeout=20)
     resp.raise_for_status()
@@ -118,30 +117,10 @@ def _fetch_feed(feed, days_ahead, config):
                 source=feed["name"],
                 event_type=event_type,
                 scale=scale,
-                venue_lat=venue_lat,
-                venue_lng=venue_lng,
+                county=county,
             )
         )
     return events
-
-
-def _venue_location(feed, config):
-    """
-    Geocodes this feed's `address:` (if set) once per feed, so the live
-    "What's Going On In Our Area" distance filter has real coordinates to
-    work with. Falls back to config.yaml's main location if no address is
-    set or geocoding fails.
-    """
-    address = feed.get("address")
-    if address:
-        try:
-            lat, lng, _ = geocode.geocode_town(address)
-            return lat, lng
-        except Exception as exc:
-            print(f"  [ics_calendar] {feed['name']}: couldn't geocode address {address!r} ({exc}) — falling back to config.yaml's main location")
-
-    loc = config.get("location", {})
-    return loc.get("lat"), loc.get("lng")
 
 
 def _extract_date(comp):

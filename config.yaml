@@ -53,10 +53,11 @@ sources:
         url: "PASTE_ICS_FEED_URL_HERE"
         page_url: "https://mhs.mtsd.k12.nj.us/calendar"
         category: "School"
-        # Optional — geocoded once so this shows up in "What's Going On In Our Area"
-        # by real distance. Leave out and it defaults to the location:
-        # block above.
-        address: "1016 Route 601, Skillman, NJ"
+        # Which county this venue is in — this is what visitors filter
+        # by in "What's Going On In Our Area". Leave out and this venue
+        # just won't show up when a visitor filters by county (it still
+        # shows when no county filter is applied).
+        county: "Somerset County, NJ"
 
       - name: "Princeton Public Library"
         # This site runs on Communico (libnet.info), a platform used by
@@ -79,7 +80,7 @@ sources:
         url: "PASTE_ICS_FEED_URL_HERE"
         page_url: "https://princetonlibrary.libnet.info/events"
         category: "Library"
-        address: "65 Witherspoon St, Princeton, NJ"
+        county: "Mercer County, NJ"
 
       # Example second feed — a public Google Calendar for a rec dept,
       # library, or town. Get the "Secret address in iCal format" from
@@ -114,9 +115,9 @@ sources:
         # "Major" or "Local-Community" if you know better for a given
         # venue.
         scale: "Mid-size"
-        # Optional — geocoded once so this venue shows up in "Search Any
-        # Town" by real distance.
-        address: "91 University Pl, Princeton, NJ"
+        # Which county this venue is in — powers the county filter on
+        # "What's Going On In Our Area".
+        county: "Mercer County, NJ"
 
       - name: "State Theatre NJ"
         url: "https://www.stnj.org/events"
@@ -126,7 +127,7 @@ sources:
         link_selector: "a"
         link_attr: "href"
         scale: "Mid-size"
-        address: "15 Livingston Ave, New Brunswick, NJ"
+        county: "Middlesex County, NJ"
 
 # Tuning for the Major / Mid-size / Local-Community scale classification
 # (see classify.py). Ticketmaster events are classified by top ticket
@@ -154,6 +155,13 @@ event_type_filter: []
 # (asks as a preset menu: 2 weeks / 1 month / 2 months / 3 months /
 # 6 months / custom), or edit directly.
 days_ahead: 60
+
+# Optional: a Google Sheet published to the web as CSV, as a
+# spreadsheet-friendly alternative to editing local_sources.yaml by
+# hand — one row per venue instead of YAML. See README "Adding venues
+# via a Google Sheet" for the column headers and how to publish one.
+# Leave blank to skip.
+sheet_url: ""
 
 # Where the SQLite DB and exported JSON live
 database_path: "data/events.db"

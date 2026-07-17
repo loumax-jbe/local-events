@@ -22,12 +22,15 @@ What it does:
 """
 
 import argparse
+import csv
+import io
 import json
 import os
 import sqlite3
 import sys
 from datetime import datetime, timezone
 
+import requests
 import yaml
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -62,6 +65,7 @@ def load_config(path):
             config.setdefault("api_keys", {})[key] = value
 
     _merge_local_sources(config)
+    _merge_sheet_sources(config)
 
     return config
 
@@ -89,6 +93,91 @@ def _merge_local_sources(config, path="local_sources.yaml"):
     if extra_sites:
         config.setdefault("sources", {}).setdefault("custom_html", {}).setdefault("sites", [])
         config["sources"]["custom_html"]["sites"].extend(extra_sites)
+
+
+# Required on every sheet row, regardless of type.
+_SHEET_REQUIRED_COLS = ("type", "name", "url")
+
+
+def _merge_sheet_sources(config):
+    """
+    Optional spreadsheet-friendly alternative to local_sources.yaml: set
+    `sheet_url` in config.yaml to a Google Sheet published to the web as
+    CSV (File -> Share -> Publish to web -> CSV), and each row becomes an
+    ics_calendars feed or custom_html site, same as if it'd been added to
+    local_sources.yaml by hand. Lets a non-technical maintainer manage
+    sources in a spreadsheet instead of editing YAML.
+
+    A row's `type` column picks which shape it becomes:
+      type=ics          -> name, url, page_url, category, county
+      type=custom_html   -> name, url, event_selector, title_selector,
+                            date_selector, link_selector, link_attr,
+                            scale, county
+    Unset optional columns just fall back to the same defaults the YAML
+    versions use. Blank/missing `type`, `name`, or `url` skips that row.
+    """
+    sheet_url = config.get("sheet_url")
+    if not sheet_url:
+        return
+
+    # A malformed sheet (bad URL, ragged CSV, a row with the wrong number
+    # of columns) should never take down the whole scraper run — same
+    # "one bad source doesn't break the others" contract every other
+    # source module follows.
+    try:
+        resp = requests.get(sheet_url, timeout=20)
+        resp.raise_for_status()
+        rows = list(csv.DictReader(io.StringIO(resp.text)))
+
+        feeds = []
+        sites = []
+        skipped = 0
+        for row in rows:
+            row = {(k or "").strip(): str(v or "").strip() for k, v in row.items()}
+            if not all(row.get(col) for col in _SHEET_REQUIRED_COLS):
+                skipped += 1
+                continue
+
+            row_type = row["type"].lower()
+            county = row.get("county") or None
+
+            if row_type == "ics":
+                feeds.append({
+                    "name": row["name"],
+                    "url": row["url"],
+                    "page_url": row.get("page_url") or row["url"],
+                    "category": row.get("category") or "Community",
+                    "county": county,
+                })
+            elif row_type == "custom_html":
+                sites.append({
+                    "name": row["name"],
+                    "url": row["url"],
+                    "event_selector": row.get("event_selector"),
+                    "title_selector": row.get("title_selector"),
+                    "date_selector": row.get("date_selector"),
+                    "link_selector": row.get("link_selector") or "a",
+                    "link_attr": row.get("link_attr") or "href",
+                    "scale": row.get("scale") or "Mid-size",
+                    "county": county,
+                })
+            else:
+                print(f"  [sheet] row {row['name']!r} has type {row['type']!r} — must be 'ics' or 'custom_html', skipping")
+                skipped += 1
+
+        if feeds:
+            config.setdefault("sources", {}).setdefault("ics_calendars", {}).setdefault("feeds", [])
+            config["sources"]["ics_calendars"]["feeds"].extend(feeds)
+        if sites:
+            config.setdefault("sources", {}).setdefault("custom_html", {}).setdefault("sites", [])
+            config["sources"]["custom_html"]["sites"].extend(sites)
+
+        total = len(feeds) + len(sites)
+        print(f"  [sheet] loaded {total} source(s) from Google Sheet ({len(feeds)} ICS feed(s), {len(sites)} custom_html site(s)), {skipped} row(s) skipped")
+        runlog.record("Google Sheet sources", status="ok" if total else "empty", count=total)
+    except Exception as exc:
+        print(f"  [sheet] couldn't load sources from sheet_url ({exc}) — skipping")
+        runlog.record("Google Sheet sources", status="error", error=str(exc))
 
 
 def run_sources(config):
@@ -151,9 +240,9 @@ def ensure_db(db_path):
     conn.commit()
 
     # CREATE TABLE IF NOT EXISTS doesn't add columns to a database left
-    # over from before a field was added to EVENT_FIELDS (e.g.
-    # venue_lat/venue_lng) — patch those in so upserts against an older
-    # data/events.db don't fail with "no such column".
+    # over from before a field was added to EVENT_FIELDS (e.g. county) —
+    # patch those in so upserts against an older data/events.db don't
+    # fail with "no such column".
     existing_cols = {row[1] for row in conn.execute("PRAGMA table_info(events)")}
     for field in EVENT_FIELDS:
         if field != "id" and field not in existing_cols:
@@ -190,13 +279,6 @@ def export_json(conn, export_path):
         "ORDER BY (date IS NULL), date ASC"
     )
     rows = [dict(zip(EVENT_FIELDS, row)) for row in cur.fetchall()]
-    for row in rows:
-        # SQLite's TEXT column affinity stringifies numbers on the way
-        # in, so these come back as e.g. "40.3573" — cast back to float
-        # so the Worker's distance math gets real numbers, not strings.
-        for field in ("venue_lat", "venue_lng"):
-            if row[field] is not None:
-                row[field] = float(row[field])
 
     os.makedirs(os.path.dirname(export_path) or ".", exist_ok=True)
     payload = {
