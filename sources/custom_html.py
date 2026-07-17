@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup
 from dateutil import parser as dateparser
 from normalize import make_event
 import classify
+import geocode
 import runlog
 
 HEADERS = {
@@ -36,7 +37,7 @@ def fetch(config):
 
     for site in sites:
         try:
-            site_events = _scrape_site(site)
+            site_events = _scrape_site(site, config)
             print(f"  [custom_html] {site['name']}: {len(site_events)} events")
             events.extend(site_events)
             if site_events:
@@ -53,7 +54,9 @@ def fetch(config):
     return events
 
 
-def _scrape_site(site):
+def _scrape_site(site, config):
+    venue_lat, venue_lng = _venue_location(site, config)
+
     resp = requests.get(site["url"], headers=HEADERS, timeout=20)
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
@@ -101,9 +104,31 @@ def _scrape_site(site):
                 source=site["name"],
                 event_type=event_type,
                 scale=scale,
+                venue_lat=venue_lat,
+                venue_lng=venue_lng,
             )
         )
     return events
+
+
+def _venue_location(site, config):
+    """
+    Geocodes this venue's `address:` (if set) once per site, so the live
+    "What's Going On In Our Area" distance filter has real coordinates to
+    work with. Falls back to config.yaml's main location — a reasonable
+    default since these sources are almost always near the site owner's
+    own town — if no address is set or geocoding fails.
+    """
+    address = site.get("address")
+    if address:
+        try:
+            lat, lng, _ = geocode.geocode_town(address)
+            return lat, lng
+        except Exception as exc:
+            print(f"  [custom_html] {site['name']}: couldn't geocode address {address!r} ({exc}) — falling back to config.yaml's main location")
+
+    loc = config.get("location", {})
+    return loc.get("lat"), loc.get("lng")
 
 
 def _parse_date(raw_date):

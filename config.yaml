@@ -53,6 +53,10 @@ sources:
         url: "PASTE_ICS_FEED_URL_HERE"
         page_url: "https://mhs.mtsd.k12.nj.us/calendar"
         category: "School"
+        # Optional — geocoded once so this shows up in "What's Going On In Our Area"
+        # by real distance. Leave out and it defaults to the location:
+        # block above.
+        address: "1016 Route 601, Skillman, NJ"
 
       - name: "Princeton Public Library"
         # This site runs on Communico (libnet.info), a platform used by
@@ -75,6 +79,7 @@ sources:
         url: "PASTE_ICS_FEED_URL_HERE"
         page_url: "https://princetonlibrary.libnet.info/events"
         category: "Library"
+        address: "65 Witherspoon St, Princeton, NJ"
 
       # Example second feed — a public Google Calendar for a rec dept,
       # library, or town. Get the "Secret address in iCal format" from
@@ -109,6 +114,9 @@ sources:
         # "Major" or "Local-Community" if you know better for a given
         # venue.
         scale: "Mid-size"
+        # Optional — geocoded once so this venue shows up in "Search Any
+        # Town" by real distance.
+        address: "91 University Pl, Princeton, NJ"
 
       - name: "State Theatre NJ"
         url: "https://www.stnj.org/events"
@@ -118,6 +126,7 @@ sources:
         link_selector: "a"
         link_attr: "href"
         scale: "Mid-size"
+        address: "15 Livingston Ave, New Brunswick, NJ"
 
 # Tuning for the Major / Mid-size / Local-Community scale classification
 # (see classify.py). Ticketmaster events are classified by top ticket

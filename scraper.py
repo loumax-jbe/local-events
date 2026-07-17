@@ -61,7 +61,34 @@ def load_config(path):
         if value:
             config.setdefault("api_keys", {})[key] = value
 
+    _merge_local_sources(config)
+
     return config
+
+
+def _merge_local_sources(config, path="local_sources.yaml"):
+    """
+    local_sources.yaml is the maintainer-facing "add a place" file —
+    kept separate from config.yaml so adding a venue is a small, low-risk
+    edit. Its ics_calendars/custom_html lists get appended onto the same
+    lists in config.yaml so sources/ics_calendar.py and
+    sources/custom_html.py don't need to know two files exist.
+    """
+    if not os.path.exists(path):
+        return
+
+    with open(path, "r") as f:
+        local = yaml.safe_load(f) or {}
+
+    extra_feeds = local.get("ics_calendars") or []
+    if extra_feeds:
+        config.setdefault("sources", {}).setdefault("ics_calendars", {}).setdefault("feeds", [])
+        config["sources"]["ics_calendars"]["feeds"].extend(extra_feeds)
+
+    extra_sites = local.get("custom_html") or []
+    if extra_sites:
+        config.setdefault("sources", {}).setdefault("custom_html", {}).setdefault("sites", [])
+        config["sources"]["custom_html"]["sites"].extend(extra_sites)
 
 
 def run_sources(config):
@@ -122,6 +149,17 @@ def ensure_db(db_path):
         )
     """)
     conn.commit()
+
+    # CREATE TABLE IF NOT EXISTS doesn't add columns to a database left
+    # over from before a field was added to EVENT_FIELDS (e.g.
+    # venue_lat/venue_lng) — patch those in so upserts against an older
+    # data/events.db don't fail with "no such column".
+    existing_cols = {row[1] for row in conn.execute("PRAGMA table_info(events)")}
+    for field in EVENT_FIELDS:
+        if field != "id" and field not in existing_cols:
+            conn.execute(f"ALTER TABLE events ADD COLUMN {field} TEXT")
+    conn.commit()
+
     return conn
 
 
@@ -152,6 +190,13 @@ def export_json(conn, export_path):
         "ORDER BY (date IS NULL), date ASC"
     )
     rows = [dict(zip(EVENT_FIELDS, row)) for row in cur.fetchall()]
+    for row in rows:
+        # SQLite's TEXT column affinity stringifies numbers on the way
+        # in, so these come back as e.g. "40.3573" — cast back to float
+        # so the Worker's distance math gets real numbers, not strings.
+        for field in ("venue_lat", "venue_lng"):
+            if row[field] is not None:
+                row[field] = float(row[field])
 
     os.makedirs(os.path.dirname(export_path) or ".", exist_ok=True)
     payload = {
