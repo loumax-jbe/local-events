@@ -127,13 +127,20 @@ def _merge_sheet_sources(config):
     try:
         resp = requests.get(sheet_url, timeout=20)
         resp.raise_for_status()
-        rows = list(csv.DictReader(io.StringIO(resp.text)))
+        # Google's CSV export doesn't add one in practice, but strip a
+        # BOM defensively in case a different export path does — left
+        # in place it would corrupt the first column's header name.
+        text = resp.text.lstrip("﻿")
+        rows = list(csv.DictReader(io.StringIO(text)))
 
         feeds = []
         sites = []
         skipped = 0
         for row in rows:
-            row = {(k or "").strip(): str(v or "").strip() for k, v in row.items()}
+            # Column headers are matched case-insensitively — "Type" and
+            # "type" both work, since capitalizing header row labels is
+            # the natural thing to do in a spreadsheet.
+            row = {(k or "").strip().lower(): str(v or "").strip() for k, v in row.items()}
             if not all(row.get(col) for col in _SHEET_REQUIRED_COLS):
                 skipped += 1
                 continue
