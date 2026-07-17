@@ -1,4 +1,4 @@
-yamlname: Update events and deploy
+name: Update events and deploy
 
 on:
   schedule:
