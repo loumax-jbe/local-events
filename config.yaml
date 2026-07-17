@@ -161,7 +161,7 @@ days_ahead: 60
 # hand — one row per venue instead of YAML. See README "Adding venues
 # via a Google Sheet" for the column headers and how to publish one.
 # Leave blank to skip.
-sheet_url: ""
+sheet_url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT7IMvq-mmBRWXAXp7x5-m-gU58705l76O54lUXa3p-IbAfB6WkKHt2C4WAD7XOXjYqYStlyU76hk2S/pub?gid=0&single=true&output=csv"
 
 # Where the SQLite DB and exported JSON live
 database_path: "data/events.db"
