@@ -366,13 +366,6 @@
   </div>
 
   <div class="controls">
-    <div class="filter-group">
-      <span class="filter-label">Scale</span>
-      <div class="chip-row" id="scale-chips"></div>
-    </div>
-  </div>
-
-  <div class="controls">
     <div class="field">
       <label for="date-from">From</label>
       <input id="date-from" type="date">
@@ -394,20 +387,15 @@
 </section>
 
 <script>
-// Fixed, sensible order rather than whatever order they first appear in
-const SCALE_ORDER = ["All", "Major", "Mid-size", "Local-Community"];
-
 let allEvents = [];
 const selectedCounties = new Set();
 const selectedTypes = new Set();
-let activeScale = 'All';
 
 const searchInput = document.getElementById('search-text');
 const fromInput = document.getElementById('date-from');
 const toInput = document.getElementById('date-to');
 const countyChipsEl = document.getElementById('county-chips');
 const categoryChipsEl = document.getElementById('category-chips');
-const scaleChipsEl = document.getElementById('scale-chips');
 const statusLine = document.getElementById('status-line');
 const grid = document.getElementById('grid');
 const emptyState = document.getElementById('empty-state');
@@ -505,25 +493,6 @@ function buildMultiSelectChips(container, values, selectedSet) {
   });
 }
 
-// Single-select row (Scale): click one at a time, "All" resets it.
-function buildScaleChips() {
-  const present = new Set(allEvents.map(e => e.scale).filter(Boolean));
-  const scales = SCALE_ORDER.filter(s => s === 'All' || present.has(s));
-  scaleChipsEl.innerHTML = '';
-  scales.forEach(scale => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'chip' + (scale === activeScale ? ' active' : '');
-    btn.textContent = scale;
-    btn.addEventListener('click', () => {
-      activeScale = scale;
-      buildScaleChips();
-      render();
-    });
-    scaleChipsEl.appendChild(btn);
-  });
-}
-
 // ---------- Filter + render ----------
 
 function render() {
@@ -534,7 +503,6 @@ function render() {
   const filtered = allEvents.filter(e => {
     const matchesCounty = selectedCounties.size === 0 || selectedCounties.has(e.county);
     const matchesType = selectedTypes.size === 0 || selectedTypes.has(e.event_type || e.category);
-    const matchesScale = activeScale === 'All' || e.scale === activeScale;
     const haystack = `${e.title || ''} ${e.venue || ''}`.toLowerCase();
     const matchesQuery = !query || haystack.includes(query);
     // Events with only a date_display (no parseable ISO date) can't be
@@ -542,7 +510,7 @@ function render() {
     // genuinely local event just because we can't verify its date.
     const day = e.date ? e.date.slice(0, 10) : null;
     const matchesDate = !day || ((!fromDate || day >= fromDate) && (!toDate || day <= toDate));
-    return matchesCounty && matchesType && matchesScale && matchesQuery && matchesDate;
+    return matchesCounty && matchesType && matchesQuery && matchesDate;
   });
 
   filtered.sort((a, b) => {
@@ -571,14 +539,12 @@ function setEvents(events) {
   allEvents = events;
   selectedCounties.clear();
   selectedTypes.clear();
-  activeScale = 'All';
 
   const counties = [...new Set(events.map(e => e.county).filter(Boolean))].sort();
   const types = [...new Set(events.map(e => e.event_type || e.category).filter(Boolean))].sort();
 
   buildMultiSelectChips(countyChipsEl, counties, selectedCounties);
   buildMultiSelectChips(categoryChipsEl, types, selectedTypes);
-  buildScaleChips();
   render();
 }
 
