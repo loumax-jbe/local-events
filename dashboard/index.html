@@ -390,38 +390,8 @@
 
 <header>
   <h1 class="marquee-title">Local Events Board</h1>
-  <div class="marquee-sub">Two ways to find something to do: your local picks below, or search by address live.</div>
+  <div class="marquee-sub">Two ways to find something to do: search by address above, or browse your local picks below.</div>
 </header>
-
-<section class="section" id="local-picks">
-  <h2 class="section-title">Your Local Picks</h2>
-  <div class="section-sub">Last refreshed <span id="generated-at">—</span> · run <code>scraper.py</code> daily to update · school, library &amp; community sources only</div>
-
-  <div class="controls">
-    <input id="local-search" type="text" placeholder="Search title or venue…" autocomplete="off">
-  </div>
-  <div class="controls">
-    <div class="filter-group">
-      <span class="filter-label">Scale</span>
-      <div class="chip-row" id="local-scale-chips"></div>
-    </div>
-  </div>
-  <div class="controls">
-    <div class="filter-group">
-      <span class="filter-label">Type</span>
-      <div class="chip-row" id="local-category-chips"></div>
-    </div>
-  </div>
-
-  <main>
-    <div class="status-line" id="local-status-line"></div>
-    <div class="grid" id="local-grid"></div>
-    <div class="empty-state" id="local-empty-state" style="display:none;">
-      <h2>No events yet</h2>
-      <p>Run <code>python3 scraper.py</code> from the project root to pull events, then reload this page.</p>
-    </div>
-  </main>
-</section>
 
 <section class="section" id="live-search">
   <h2 class="section-title">What's Going On In Our Area</h2>
@@ -475,6 +445,36 @@
     <div class="empty-state" id="live-empty-state" style="display:block;">
       <h2>Search for events</h2>
       <p>Enter an address above and click <code>Find Events</code> to see nearby local events.</p>
+    </div>
+  </main>
+</section>
+
+<section class="section" id="local-picks">
+  <h2 class="section-title">Your Local Picks</h2>
+  <div class="section-sub">Last refreshed <span id="generated-at">—</span> · run <code>scraper.py</code> daily to update · school, library &amp; community sources only</div>
+
+  <div class="controls">
+    <input id="local-search" type="text" placeholder="Search title or venue…" autocomplete="off">
+  </div>
+  <div class="controls">
+    <div class="filter-group">
+      <span class="filter-label">Scale</span>
+      <div class="chip-row" id="local-scale-chips"></div>
+    </div>
+  </div>
+  <div class="controls">
+    <div class="filter-group">
+      <span class="filter-label">Type</span>
+      <div class="chip-row" id="local-category-chips"></div>
+    </div>
+  </div>
+
+  <main>
+    <div class="status-line" id="local-status-line"></div>
+    <div class="grid" id="local-grid"></div>
+    <div class="empty-state" id="local-empty-state" style="display:none;">
+      <h2>No events yet</h2>
+      <p>Run <code>python3 scraper.py</code> from the project root to pull events, then reload this page.</p>
     </div>
   </main>
 </section>
