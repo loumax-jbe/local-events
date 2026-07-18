@@ -79,6 +79,14 @@ sources:
         # own website contact would need to request that.)
         url: "PASTE_ICS_FEED_URL_HERE"
         page_url: "https://princetonlibrary.libnet.info/events"
+        # Communico/libnet.info gives every event its own real page at
+        # /event/<id>, even though the feed itself never fills in an
+        # event's URL: property — {uid} gets swapped for that event's
+        # ICS UID, so cards link to the specific event instead of just
+        # the general events page. Confirmed this pattern by testing a
+        # UID from the feed directly. Any other libnet.info-powered
+        # library likely works the same way, just with its own domain.
+        event_url_template: "https://princetonlibrary.libnet.info/event/{uid}"
         category: "Library"
         county: "Mercer County, NJ"
 

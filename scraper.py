@@ -109,7 +109,8 @@ def _merge_sheet_sources(config):
     sources in a spreadsheet instead of editing YAML.
 
     A row's `type` column picks which shape it becomes:
-      type=ics          -> name, url, page_url, category, county
+      type=ics          -> name, url, page_url, event_url_template,
+                            category, county
       type=custom_html   -> name, url, event_selector, title_selector,
                             date_selector, link_selector, link_attr,
                             scale, county
@@ -155,6 +156,7 @@ def _merge_sheet_sources(config):
                     "page_url": row.get("page_url") or row["url"],
                     "category": row.get("category") or "Community",
                     "county": county,
+                    "event_url_template": row.get("event_url_template") or None,
                 })
             elif row_type == "custom_html":
                 sites.append({

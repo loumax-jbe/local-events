@@ -92,7 +92,7 @@ def _fetch_feed(feed, days_ahead):
     for comp in occurrences:
         title = str(comp.get("summary", "Untitled event"))
         location_text = str(comp.get("location")) if comp.get("location") else None
-        url = str(comp.get("url")) if comp.get("url") else feed.get("page_url", feed["url"])
+        url = _event_url(comp, feed)
 
         date_iso, date_display = _extract_date(comp)
 
@@ -121,6 +121,36 @@ def _fetch_feed(feed, days_ahead):
             )
         )
     return events
+
+
+def _event_url(comp, feed):
+    """
+    Link shown on the dashboard card for this specific event, in order
+    of preference:
+      1. The VEVENT's own URL property, if the feed sets one (most ICS
+         feeds don't).
+      2. `event_url_template` from config, if set — a per-feed URL
+         pattern with a `{uid}` placeholder, substituted with this
+         event's ICS UID. Some calendar platforms (e.g. Communico/
+         libnet.info, used by many public libraries) give every event a
+         real page at a predictable URL like
+         "https://yourlibrary.libnet.info/event/{uid}" even though the
+         feed itself never fills in URL: — check the feed's own event
+         pages for a UID-shaped number in the address bar to see if this
+         applies.
+      3. `page_url` (or the feed URL itself as a last resort) — a
+         general "browse all events here" link, when there's no way to
+         deep-link to this specific event.
+    """
+    if comp.get("url"):
+        return str(comp.get("url"))
+
+    template = feed.get("event_url_template")
+    uid = comp.get("uid")
+    if template and uid:
+        return template.replace("{uid}", str(uid))
+
+    return feed.get("page_url", feed["url"])
 
 
 def _extract_date(comp):

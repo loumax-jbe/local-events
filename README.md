@@ -202,7 +202,8 @@ venue, no code or GitHub editing needed to add one.
    | `name` | both | required |
    | `url` | both | required — feed URL for `ics`, events page URL for `custom_html` |
    | `county` | both | what visitors filter by, e.g. `Mercer County, NJ` |
-   | `page_url` | `ics` | link shown if an event has no URL of its own; defaults to `url` |
+   | `page_url` | `ics` | link shown if an event has no URL of its own and no `event_url_template` applies; defaults to `url` |
+   | `event_url_template` | `ics` | optional — a per-event URL pattern like `https://yourlibrary.libnet.info/event/{uid}`, with `{uid}` swapped for that event's ICS UID. Most ICS feeds don't need this — Communico/libnet.info (many public libraries) is a known platform that does, since it gives every event a real page without ever filling in the feed's own URL field |
    | `category` | `ics` | e.g. `Library`, `School`; defaults to `Community` |
    | `event_selector` | `custom_html` | CSS selector for the repeating event card |
    | `title_selector` | `custom_html` | CSS selector for the title within a card |

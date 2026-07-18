@@ -22,11 +22,22 @@
 # venue without one only shows up when no county filter is applied. Set
 # it to whatever this venue's county actually is, e.g. "Mercer County, NJ".
 #
+# For ics_calendars, `event_url_template` is optional too — most ICS
+# feeds don't give each event its own URL, so cards fall back to
+# `page_url` (a general "browse all events" link) unless you set this.
+# Some calendar platforms (Communico/libnet.info, used by many public
+# libraries) give every event a real page at a predictable URL even
+# though the feed never fills one in — check an event's page on the
+# venue's own site for a URL like ".../event/12345" and, if you find
+# one, set event_url_template to that same URL with the number replaced
+# by "{uid}"; it gets substituted with that event's ICS UID.
+#
 # -----------------------------------------------------------------
 # ics_calendars:
 #   - name: "Example Town Library"
 #     url: "PASTE_ICS_FEED_URL_HERE"
 #     page_url: "https://example.org/events"
+#     event_url_template: "https://example.org/event/{uid}"  # optional
 #     category: "Library"
 #     county: "Example County, NJ"
 #
