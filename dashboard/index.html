@@ -548,14 +548,14 @@ function isoDate(d) {
   return `${year}-${month}-${day}`;
 }
 
-(function setDefaultDates() {
-  const today = new Date();
-  const to = new Date(today);
-  to.setDate(to.getDate() + 60);
-  fromInput.value = isoDate(today);
-  toInput.value = isoDate(to);
-  fromInput.min = isoDate(today);
-  toInput.min = isoDate(today);
+// From/To start empty — no date filter applied — so every upcoming
+// event shows until a quick-date preset or a manual date narrows it.
+// min just stops manual entry from picking a date before today, since
+// past events are already pruned server-side and wouldn't show anyway.
+(function setDateInputConstraints() {
+  const todayStr = isoDate(new Date());
+  fromInput.min = todayStr;
+  toInput.min = todayStr;
 })();
 
 // ---------- Quick date presets ----------
@@ -578,16 +578,20 @@ function thisWeekendRange(today) {
   return { from: sat, to: sun };
 }
 
-function thisWeekRange(today) {
+function nextWeekendRange(today) {
   const day = today.getDay(); // 0=Sun..6=Sat
-  const daysUntilSun = (7 - day) % 7; // 0 if today is Sunday
-  const sun = addDays(today, daysUntilSun);
-  return { from: today, to: sun };
+  const daysUntilThisSat = (6 - day + 7) % 7; // 0 if today is Saturday
+  const thisSat = addDays(today, daysUntilThisSat);
+  const nextSat = addDays(thisSat, 7);
+  const nextSun = addDays(nextSat, 1);
+  return { from: nextSat, to: nextSun };
 }
 
 const DATE_PRESETS = [
   { label: 'This Weekend', range: thisWeekendRange },
-  { label: 'This Week', range: thisWeekRange },
+  { label: 'Next Weekend', range: nextWeekendRange },
+  { label: 'Next 7 Days', range: (today) => ({ from: today, to: addDays(today, 6) }) },
+  { label: 'Next 14 Days', range: (today) => ({ from: today, to: addDays(today, 13) }) },
 ];
 
 (function buildDatePresetChips() {
