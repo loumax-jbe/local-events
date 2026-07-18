@@ -108,6 +108,7 @@ def _fetch_feed(feed, days_ahead):
         # calendars, not major ticketing platforms — Local-Community by
         # definition, no heuristic needed.
         scale = classify.classify_scale(is_school_or_community_source=True)
+        price_display = _price_display(comp)
 
         events.append(
             make_event(
@@ -121,6 +122,7 @@ def _fetch_feed(feed, days_ahead):
                 event_type=event_type,
                 scale=scale,
                 county=county,
+                price_display=price_display,
             )
         )
     return events
@@ -154,6 +156,21 @@ def _event_url(comp, feed):
         return template.replace("{uid}", str(uid))
 
     return feed.get("page_url", feed["url"])
+
+
+def _price_display(comp):
+    """
+    Standard ICS has no price field, but The Events Calendar plugin
+    (used by Arts Council of Princeton and many other WordPress event
+    sites) tags free events with a "Free or Low Cost" category — the
+    only price signal available in the feed. Anything else is left
+    blank rather than guessed at, since an absent tag doesn't confirm
+    an event actually costs money.
+    """
+    categories = comp.get("categories")
+    if categories and "free or low cost" in str(categories).lower():
+        return "Free"
+    return None
 
 
 def _extract_date(comp):
