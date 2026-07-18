@@ -366,6 +366,13 @@
   </div>
 
   <div class="controls">
+    <div class="filter-group">
+      <span class="filter-label">Quick dates</span>
+      <div class="chip-row" id="date-preset-chips"></div>
+    </div>
+  </div>
+
+  <div class="controls">
     <div class="field">
       <label for="date-from">From</label>
       <input id="date-from" type="date">
@@ -396,6 +403,7 @@ const fromInput = document.getElementById('date-from');
 const toInput = document.getElementById('date-to');
 const countyChipsEl = document.getElementById('county-chips');
 const categoryChipsEl = document.getElementById('category-chips');
+const datePresetChipsEl = document.getElementById('date-preset-chips');
 const statusLine = document.getElementById('status-line');
 const grid = document.getElementById('grid');
 const emptyState = document.getElementById('empty-state');
@@ -551,7 +559,14 @@ function setEvents(events) {
 // ---------- Load ----------
 
 function isoDate(d) {
-  return d.toISOString().slice(0, 10);
+  // Local date components, not toISOString() — that converts to UTC,
+  // which silently rolls over to the next day for any visitor west of
+  // UTC once local time passes their timezone's evening offset (e.g.
+  // ~8pm Eastern), quietly setting "today" to tomorrow.
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 (function setDefaultDates() {
@@ -562,6 +577,55 @@ function isoDate(d) {
   toInput.value = isoDate(to);
   fromInput.min = isoDate(today);
   toInput.min = isoDate(today);
+})();
+
+// ---------- Quick date presets ----------
+
+function addDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function thisWeekendRange(today) {
+  const day = today.getDay(); // 0=Sun..6=Sat
+  if (day === 0) {
+    // Sunday — Saturday already passed, so "this weekend" is just today
+    return { from: today, to: today };
+  }
+  const daysUntilSat = (6 - day + 7) % 7; // 0 if today is Saturday
+  const sat = addDays(today, daysUntilSat);
+  const sun = addDays(sat, 1);
+  return { from: sat, to: sun };
+}
+
+function thisWeekRange(today) {
+  const day = today.getDay(); // 0=Sun..6=Sat
+  const daysUntilSun = (7 - day) % 7; // 0 if today is Sunday
+  const sun = addDays(today, daysUntilSun);
+  return { from: today, to: sun };
+}
+
+const DATE_PRESETS = [
+  { label: 'Today', range: (today) => ({ from: today, to: today }) },
+  { label: 'This Weekend', range: thisWeekendRange },
+  { label: 'This Week', range: thisWeekRange },
+];
+
+(function buildDatePresetChips() {
+  DATE_PRESETS.forEach(preset => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'chip';
+    btn.textContent = preset.label;
+    btn.addEventListener('click', () => {
+      const { from, to } = preset.range(new Date());
+      fromInput.value = isoDate(from);
+      toInput.value = isoDate(to);
+      render();
+    });
+    datePresetChipsEl.appendChild(btn);
+  });
 })();
 
 async function loadEvents() {
