@@ -101,9 +101,10 @@ def fetch(config):
 def _parse_datetime(raw_date, raw_time):
     """
     Combines Date + Time into a full timestamp when both are present and
-    parse cleanly. Falls back to date-only (date_display) when Time is
-    missing, "TBD", or otherwise not parseable — better to show a
-    correct date with no time than guess wrong.
+    parse cleanly. Falls back to the parsed date with no time (still a
+    real, sortable/filterable date — just date_display is a display-only
+    fallback for when even the date itself doesn't parse) when Time is
+    missing, "TBD", or otherwise not parseable.
     """
     try:
         date_only = dateparser.parse(raw_date, fuzzy=True)
@@ -117,4 +118,4 @@ def _parse_datetime(raw_date, raw_time):
         except (ValueError, OverflowError):
             pass
 
-    return None, f"{date_only.strftime('%B')} {date_only.day}, {date_only.year}"
+    return date_only.isoformat(), None
