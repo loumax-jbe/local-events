@@ -44,7 +44,8 @@ _TYPE_KEYWORDS = [
     ]),
     ("Family & Kids", [
         "storytime", "story time", "kids", "children's", "family day",
-        "puppet", "petting zoo", "trick-or-treat",
+        "puppet", "petting zoo", "trick-or-treat", "baby", "toddler",
+        "playtime", "song and rhyme", "rhyme time", "preschool",
     ]),
     ("Comedy", ["comedy", "stand-up", "standup", "open mic comedy"]),
     ("Festival & Fair", [
