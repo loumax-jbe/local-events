@@ -183,6 +183,20 @@
     gap: 20px;
   }
 
+  .grid + .week-header { margin-top: 36px; }
+
+  .week-header {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--marquee);
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .week-header:first-child { margin-top: 0; }
+
   /* Ticket-stub card: date block + info block, joined by a perforated tear line */
   .ticket {
     display: grid;
@@ -369,7 +383,7 @@
 
   <main>
     <div class="status-line" id="status-line"></div>
-    <div class="grid" id="grid"></div>
+    <div id="grid"></div>
     <div class="empty-state" id="empty-state" style="display:none;">
       <h2>No events yet</h2>
       <p>Run <code>python3 scraper.py</code> from the project root to pull events, then reload this page.</p>
@@ -480,6 +494,64 @@ function buildMultiSelectChips(container, values, selectedSet) {
   });
 }
 
+// ---------- Week grouping ----------
+
+// Sunday-start week, matching the quick-date preset convention. `day` is
+// a 'YYYY-MM-DD' string (local, already extracted from e.date elsewhere)
+// — parsed with an explicit T00:00:00 so it's read as local midnight
+// rather than UTC (see isoDate() above for why that distinction matters).
+function weekStartDate(day) {
+  const d = new Date(`${day}T00:00:00`);
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+}
+
+function formatWeekLabel(weekStart) {
+  const weekEnd = addDays(weekStart, 6);
+  const start = weekStart.toLocaleString(undefined, { month: 'short', day: 'numeric' });
+  const end = weekEnd.toLocaleString(undefined, { month: 'short', day: 'numeric' });
+  return `Week of ${start} – ${end}`;
+}
+
+// Builds one <h3 class="week-header"> + <div class="grid"> pair per
+// calendar week, appended in order into `container`. `events` must
+// already be sorted ascending by date — events with no parseable date
+// go last, under a trailing "Date TBD" header, rather than being
+// silently dropped.
+function renderGroupedByWeek(container, events) {
+  const weeks = new Map();
+  const tbd = [];
+
+  events.forEach(e => {
+    const day = e.date ? e.date.slice(0, 10) : null;
+    if (!day) {
+      tbd.push(e);
+      return;
+    }
+    const start = weekStartDate(day);
+    const key = isoDate(start);
+    if (!weeks.has(key)) {
+      weeks.set(key, { label: formatWeekLabel(start), events: [] });
+    }
+    weeks.get(key).events.push(e);
+  });
+
+  function appendGroup(label, groupEvents) {
+    const header = document.createElement('h3');
+    header.className = 'week-header';
+    header.textContent = label;
+    container.appendChild(header);
+
+    const rowGrid = document.createElement('div');
+    rowGrid.className = 'grid';
+    groupEvents.forEach(e => rowGrid.appendChild(buildCard(e)));
+    container.appendChild(rowGrid);
+  }
+
+  weeks.forEach(week => appendGroup(week.label, week.events));
+  if (tbd.length) appendGroup('Date TBD', tbd);
+}
+
 // ---------- Filter + render ----------
 
 function render() {
@@ -519,7 +591,7 @@ function render() {
     return;
   }
   emptyState.style.display = 'none';
-  filtered.forEach(e => grid.appendChild(buildCard(e)));
+  renderGroupedByWeek(grid, filtered);
 }
 
 function setEvents(events) {
