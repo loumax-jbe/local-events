@@ -256,22 +256,6 @@
     min-width: 0;
   }
 
-  /* Scale badge — the primary "how big a deal is this" signal
-     (Alicia Keys vs. a library concert). */
-  .scale-badge {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.65rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 2px 7px;
-    border-radius: 3px;
-    width: fit-content;
-  }
-  .scale-badge.major { background: var(--marquee); color: var(--ink); }
-  .scale-badge.mid-size { background: transparent; color: var(--slate); border: 1px solid var(--line); }
-  .scale-badge.local-community { background: transparent; color: var(--teal); border: 1px solid var(--teal); }
-
   .ticket-title {
     font-size: 1rem;
     font-weight: 600;
@@ -416,10 +400,6 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-function scaleClass(scale) {
-  return (scale || '').toLowerCase().replace(/\s+/g, '-');
-}
-
 function splitDate(e) {
   if (e.date) {
     const d = new Date(e.date);
@@ -453,7 +433,6 @@ function buildCard(e) {
       <span class="time">${time}</span>
     </div>
     <div class="ticket-info">
-      ${e.scale ? `<span class="scale-badge ${scaleClass(e.scale)}">${escapeHtml(e.scale)}</span>` : ''}
       <div class="ticket-title">${escapeHtml(e.title || 'Untitled event')}</div>
       <div class="ticket-venue">${escapeHtml(e.venue || 'Venue TBA')}</div>
       <div class="ticket-meta">
