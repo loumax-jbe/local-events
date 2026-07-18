@@ -48,11 +48,14 @@ def _clean(s):
 def dedupe(events):
     """
     Collapse near-duplicate events (same title + venue + date, even if
-    the IDs differ because they came from different sources).
+    the IDs differ because they came from different sources). Keys on
+    the full date/time, not just the day — two genuinely different
+    showtimes on the same day (e.g. a 10:30am and a 2:00pm performance)
+    are different events, not duplicates.
     """
     seen = {}
     for e in events:
-        key = (_clean(e.get("title")), _clean(e.get("venue")), _clean(e.get("date"))[:10])
+        key = (_clean(e.get("title")), _clean(e.get("venue")), _clean(e.get("date")))
         if key not in seen:
             seen[key] = e
         else:
