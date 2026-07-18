@@ -71,5 +71,10 @@ ics_calendars:
     page_url: "https://artscouncilofprinceton.org/calendar/"
     category: "Arts Council"
     county: "Mercer County, NJ"
+    # This feed has no price data of its own, but every event's own page
+    # does (a "$85"-style cost widget) — fetch it per event for an exact
+    # price instead of just guessing Free/blank from the feed's category
+    # tags. Costs one extra HTTP request per event.
+    fetch_price_from_page: true
 
 custom_html: []

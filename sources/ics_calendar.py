@@ -33,6 +33,7 @@ from datetime import datetime, timedelta, date
 import icalendar
 import recurring_ical_events
 import requests
+from bs4 import BeautifulSoup
 
 from normalize import make_event
 import classify
@@ -108,7 +109,7 @@ def _fetch_feed(feed, days_ahead):
         # calendars, not major ticketing platforms — Local-Community by
         # definition, no heuristic needed.
         scale = classify.classify_scale(is_school_or_community_source=True)
-        price_display = _price_display(comp)
+        price_display = _price_display(comp, feed, url)
 
         events.append(
             make_event(
@@ -158,15 +159,31 @@ def _event_url(comp, feed):
     return feed.get("page_url", feed["url"])
 
 
-def _price_display(comp):
+def _price_display(comp, feed, url):
     """
-    Standard ICS has no price field, but The Events Calendar plugin
-    (used by Arts Council of Princeton and many other WordPress event
-    sites) tags free events with a "Free or Low Cost" category — the
-    only price signal available in the feed. Anything else is left
-    blank rather than guessed at, since an absent tag doesn't confirm
-    an event actually costs money.
+    Standard ICS has no price field. When `fetch_price_from_page` is set
+    on the feed, fetches the event's own page and reads its cost widget
+    for an exact price like "$85" — a pattern used by The Events
+    Calendar's Elementor integration (e.g. Arts Council of Princeton).
+    One extra HTTP request per event, so it's opt-in per feed rather
+    than automatic. Falls back to "Free" when the feed's own "Free or
+    Low Cost" category tag is the only signal available (or the page
+    fetch didn't find a price), and blank otherwise — an absent tag
+    doesn't confirm an event actually costs money.
     """
+    if feed.get("fetch_price_from_page") and url and url != feed.get("page_url"):
+        try:
+            resp = requests.get(url, headers=HEADERS, timeout=20)
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text, "html.parser")
+            cost_el = soup.select_one(".tec-events-elementor-event-widget__cost")
+            if cost_el:
+                text = cost_el.get_text(strip=True)
+                if text:
+                    return text
+        except Exception as exc:
+            print(f"    [ics_calendar] price fetch failed for {url}: {exc}")
+
     categories = comp.get("categories")
     if categories and "free or low cost" in str(categories).lower():
         return "Free"
