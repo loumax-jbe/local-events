@@ -161,7 +161,7 @@ keyword_filter: []
 
 # Optional event-type filter — keeps only these event_type values (see
 # classify.py for the full list: Music, Theater & Performing Arts,
-# Comedy, Family & Kids, Festival & Fair, Sports, Community & Civic,
+# Comedy, Family & Kids, Sports, Community & Civic,
 # School & Youth, Film, Other). Leave empty to keep every type.
 # Set via `python3 setup.py`, or edit directly, e.g.:
 #   event_type_filter: ["Music", "Theater & Performing Arts", "School & Youth"]

@@ -4,8 +4,8 @@ classify.py
 Assigns two independent labels to every event, regardless of source:
 
   event_type — WHAT it is: Music, Theater & Performing Arts, Comedy,
-               Family & Kids, Festival & Fair, Sports, Community & Civic,
-               School & Youth, Film, Other.
+               Family & Kids, Sports, Community & Civic, School & Youth,
+               Film, Other.
 
   scale      — HOW BIG it is: Major, Mid-size, Local-Community.
                This is the axis that actually separates "Alicia Keys at
@@ -25,7 +25,6 @@ EVENT_TYPES = [
     "Theater & Performing Arts",
     "Comedy",
     "Family & Kids",
-    "Festival & Fair",
     "Sports",
     "Community & Civic",
     "School & Youth",
@@ -44,15 +43,11 @@ _TYPE_KEYWORDS = [
     ]),
     ("Family & Kids", [
         "storytime", "story time", "kids", "children's", "family day",
-        "puppet", "petting zoo", "trick-or-treat", "baby", "babies",
-        "toddler", "playdate", "playtime", "song and rhyme", "rhyme time",
-        "preschool",
+        "family", "puppet", "petting zoo", "trick-or-treat", "baby",
+        "babies", "toddler", "playdate", "playtime", "song and rhyme",
+        "rhyme time", "preschool",
     ]),
     ("Comedy", ["comedy", "stand-up", "standup", "open mic comedy"]),
-    ("Festival & Fair", [
-        "festival", "fair", "farmers market", "craft fair", "street fair",
-        "carnival",
-    ]),
     ("Sports", [
         "vs.", "vs ", "game day", "tournament", "5k", "10k", "marathon",
         "athletics",
