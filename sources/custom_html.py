@@ -70,8 +70,12 @@ def _scrape_site(site):
         if not title_el:
             continue
 
-        title = title_el.get_text(strip=True)
-        raw_date = date_el.get_text(strip=True) if date_el else None
+        # separator=" " matters when a title/date is split across nested
+        # elements with no whitespace between them in the source HTML
+        # (e.g. <span>Jul</span><span>17</span> would otherwise become
+        # "Jul17" instead of "Jul 17" and fail to parse as a date).
+        title = title_el.get_text(separator=" ", strip=True)
+        raw_date = date_el.get_text(separator=" ", strip=True) if date_el else None
 
         date_iso, date_display = _parse_date(raw_date)
 

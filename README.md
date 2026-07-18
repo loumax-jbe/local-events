@@ -32,6 +32,7 @@ sources/
   ics_calendar.py                          <- school/library/town iCal feeds
   custom_html.py                            <- config-driven scraper for sites without a feed
   manual.py                                  <- reads manual_events.yaml
+  events_sheet.py                              <- reads ready-made events from a Google Sheet (events_sheet_url)
 dashboard/
   index.html                                   <- open this in a browser to view events
   status.html                                    <- hidden page: what was scraped, what's missing/broken
@@ -229,6 +230,45 @@ in it, just venue names/URLs/selectors. If a row is missing `type`,
 `name`, or `url`, or `type` isn't `ics`/`custom_html`, that row is
 skipped — check the console output from `scraper.py` (or the `Google
 Sheet sources` entry on `dashboard/status.html`) if a row you added
+doesn't show up.
+
+### Reading events directly from a Google Sheet
+
+The Sheet above describes *places to search* — a feed URL or a page to
+scrape. Some sources skip that step entirely and publish their events
+as a plain spreadsheet already (school district activity calendars are
+a common example: no ICS feed, just a hand-maintained list of dates).
+For those, `events_sheet_url` reads the rows themselves as events — the
+live-data equivalent of `manual_events.yaml`, refreshed on every scrape
+instead of edited by hand.
+
+1. **Header row**, exact column names, case-insensitive (blank cells
+   are fine — only `title`/`event` and `date` are required):
+
+   | Column | Notes |
+   |---|---|
+   | `title` (or `event`) | required |
+   | `date` | required — anything `dateutil` can parse, e.g. `5/8/2027` |
+   | `time` | optional, e.g. `7:00 PM` — combined with `date` when it parses cleanly; falls back to date-only (e.g. `TBD`, a range like `6:00PM - 8:00PM` that doesn't parse) rather than guessing wrong |
+   | `venue` (or `location`) | |
+   | `category` (or `school`) | also feeds the event_type guess if `event_type` isn't set |
+   | `event_type` | optional override — skips the keyword-based guess entirely, same as `manual_events.yaml` |
+   | `scale` | `Major` / `Mid-size` / `Local-Community`; defaults to `Local-Community` |
+   | `price_display` (or `admission`) | shown as a tag on the card, e.g. `Free`, `Tickets Required` |
+   | `source_note` (or `school`) | shown as a tag; defaults to `Events sheet` |
+   | `county` | what visitors filter by |
+   | `url` | link for the card; no default if left blank |
+
+2. **Publish to web as CSV** (same steps as above), paste the URL into
+   `events_sheet_url` in `config.yaml`. If the sheet has no `county`
+   column at all — common when it's not your own sheet, like a school
+   district's own event list — set `events_sheet_county` in
+   `config.yaml` instead; it applies to every row from that sheet that
+   doesn't set its own.
+
+Same privacy note as the sources sheet: publishing makes the content
+public. A row missing `title` or `date` is skipped; check
+`dashboard/status.html`'s `Events sheet` entry if something you added
 doesn't show up.
 
 ## 6. Add events you heard about on Instagram

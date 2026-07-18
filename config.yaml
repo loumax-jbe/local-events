@@ -137,6 +137,15 @@ sources:
         scale: "Mid-size"
         county: "Middlesex County, NJ"
 
+  # Ready-made events read live from a Google Sheet published as CSV —
+  # the live-data equivalent of manual_events.yaml, for sources (like
+  # some school districts) that publish their own event list as a
+  # spreadsheet rather than an ICS feed or a scrapable web page. See
+  # events_sheet_url below and README "Reading events directly from a
+  # Google Sheet".
+  events_sheet:
+    enabled: true
+
 # Tuning for the Major / Mid-size / Local-Community scale classification
 # (see classify.py). Ticketmaster events are classified by top ticket
 # price since the API doesn't expose a popularity figure; SeatGeek events
@@ -170,6 +179,20 @@ days_ahead: 60
 # via a Google Sheet" for the column headers and how to publish one.
 # Leave blank to skip.
 sheet_url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT7IMvq-mmBRWXAXp7x5-m-gU58705l76O54lUXa3p-IbAfB6WkKHt2C4WAD7XOXjYqYStlyU76hk2S/pub?gid=0&single=true&output=csv"
+
+# Optional: a Google Sheet published to the web as CSV containing
+# ready-made events (title/date/venue/etc. per row) rather than places
+# to search — the live-data equivalent of manual_events.yaml, for
+# sources that publish their own event list as a spreadsheet instead of
+# an ICS feed or a scrapable web page (e.g. a school district's activity
+# calendar). Different from sheet_url above, which describes sources to
+# scrape, not events themselves. See README "Reading events directly
+# from a Google Sheet". Leave blank to skip.
+events_sheet_url: "https://docs.google.com/spreadsheets/d/1iCaMdNCSel_iEJAeH4lk5uYdbHlR9eMu2LI3jah5-iw/export?format=csv&gid=0"
+# Fallback county applied to any row in events_sheet_url with no County
+# column of its own — this particular sheet (MTSD's own event list) has
+# no county data at all, since it's not a sheet you control.
+events_sheet_county: "Somerset County, NJ"
 
 # Where the SQLite DB and exported JSON live
 database_path: "data/events.db"

@@ -36,7 +36,7 @@ import yaml
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from normalize import EVENT_FIELDS, dedupe
-from sources import ticketmaster, seatgeek, custom_html, ics_calendar, manual
+from sources import ticketmaster, seatgeek, custom_html, ics_calendar, manual, events_sheet
 import runlog
 
 SOURCE_MODULES = {
@@ -45,6 +45,7 @@ SOURCE_MODULES = {
     "ics_calendars": ics_calendar,
     "custom_html": custom_html,
     "manual": manual,
+    "events_sheet": events_sheet,
 }
 
 
