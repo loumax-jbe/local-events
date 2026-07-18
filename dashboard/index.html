@@ -432,11 +432,19 @@ function splitDate(e) {
 }
 
 function buildCard(e) {
-  const a = document.createElement('a');
+  // No real link to send visitors to (e.g. a manual entry with no URL
+  // set) — render a plain, non-clickable card instead of a link. An
+  // <a href="#" target="_blank"> here would open a new tab to a fresh
+  // copy of this same page, which looks exactly like the site
+  // resetting (every filter/chip back to default).
+  const hasLink = Boolean(e.url);
+  const a = document.createElement(hasLink ? 'a' : 'div');
   a.className = 'ticket';
-  a.href = e.url || '#';
-  a.target = '_blank';
-  a.rel = 'noopener noreferrer';
+  if (hasLink) {
+    a.href = e.url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+  }
 
   const { month, day, time } = splitDate(e);
 
