@@ -82,7 +82,7 @@ This asks four questions and writes the answers into `config.yaml`:
 3. **How far ahead to look for events** — a preset menu (2 weeks, 1
    month, 2 months, 3 months, 6 months) plus a custom option if none of
    those fit. Written as `days_ahead`.
-4. **Which event types you want** — a checklist (Concert, Theater &
+4. **Which event types you want** — a checklist (Music, Theater &
    Performing Arts, Comedy, Family & Kids, Festival & Fair, Sports,
    Community & Civic, School & Youth, Film, Other). Press Enter to keep
    everything.
@@ -347,9 +347,9 @@ server running) and it'll reflect the latest daily pull.
 ## Event classification
 
 Every event gets two independent labels so the dashboard can tell a
-touring arena act apart from a school play, even when both say "Concert":
+touring arena act apart from a school play, even when both say "Music":
 
-- **event_type** — what it is: Concert, Theater & Performing Arts,
+- **event_type** — what it is: Music, Theater & Performing Arts,
   Comedy, Family & Kids, Festival & Fair, Sports, Community & Civic,
   School & Youth, Film, Other. Determined by keyword matching against
   the title/venue/category (see `classify.py`), falling back to the

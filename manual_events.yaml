@@ -16,7 +16,7 @@
 #   url:         link to more info (school page, Eventbrite, etc.) —
 #                leave blank if there isn't one
 #   category:    short label, e.g. "School Musical", "Craft Fair"
-#   event_type:  one of: Concert, Theater & Performing Arts, Comedy,
+#   event_type:  one of: Music, Theater & Performing Arts, Comedy,
 #                Family & Kids, Festival & Fair, Sports, Community & Civic,
 #                School & Youth, Film, Other
 #                (leave blank and the pipeline will guess from the title)

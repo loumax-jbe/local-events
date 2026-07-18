@@ -21,7 +21,7 @@ EVENT_FIELDS = [
     "source",
     "image_url",
     "price_display",
-    "event_type",   # Concert, Theater & Performing Arts, School & Youth, etc. See classify.py
+    "event_type",   # Music, Theater & Performing Arts, School & Youth, etc. See classify.py
     "scale",         # Major / Mid-size / Local-Community — see classify.py
     "county",         # which county this venue is in — powers the "What's Going On In Our Area" county filter
 ]

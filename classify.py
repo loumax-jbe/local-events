@@ -3,14 +3,14 @@ classify.py
 -----------
 Assigns two independent labels to every event, regardless of source:
 
-  event_type — WHAT it is: Concert, Theater & Performing Arts, Comedy,
+  event_type — WHAT it is: Music, Theater & Performing Arts, Comedy,
                Family & Kids, Festival & Fair, Sports, Community & Civic,
                School & Youth, Film, Other.
 
   scale      — HOW BIG it is: Major, Mid-size, Local-Community.
                This is the axis that actually separates "Alicia Keys at
                an arena" from "library concert" — two events can share
-               an event_type (both "Concert") but sit at opposite ends
+               an event_type (both "Music") but sit at opposite ends
                of scale.
 
 Each source maps its own raw category/genre data through here rather
@@ -21,7 +21,7 @@ thing no matter where an event came from.
 import re
 
 EVENT_TYPES = [
-    "Concert",
+    "Music",
     "Theater & Performing Arts",
     "Comedy",
     "Family & Kids",
@@ -44,8 +44,9 @@ _TYPE_KEYWORDS = [
     ]),
     ("Family & Kids", [
         "storytime", "story time", "kids", "children's", "family day",
-        "puppet", "petting zoo", "trick-or-treat", "baby", "toddler",
-        "playtime", "song and rhyme", "rhyme time", "preschool",
+        "puppet", "petting zoo", "trick-or-treat", "baby", "babies",
+        "toddler", "playdate", "playtime", "song and rhyme", "rhyme time",
+        "preschool",
     ]),
     ("Comedy", ["comedy", "stand-up", "standup", "open mic comedy"]),
     ("Festival & Fair", [
@@ -65,8 +66,9 @@ _TYPE_KEYWORDS = [
         "musical", "theatre", "theater", "play", "recital", "ballet",
         "orchestra", "symphony", "choir", "opera",
     ]),
-    ("Concert", [
+    ("Music", [
         "concert", "tour", "live music", "band", "singer", "songwriter",
+        "music",
     ]),
     # Checked last: "library" alone matches almost every venue name for an
     # ICS-fed library calendar (e.g. "Princeton Public Library - Community
@@ -83,7 +85,7 @@ _TYPE_KEYWORDS = [
 # Ticketmaster/SeatGeek "segment" values map straight across when nothing
 # more specific matches.
 _SEGMENT_TYPE_MAP = {
-    "music": "Concert",
+    "music": "Music",
     "arts & theatre": "Theater & Performing Arts",
     "sports": "Sports",
     "film": "Film",
