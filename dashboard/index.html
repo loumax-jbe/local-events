@@ -601,10 +601,18 @@ const DATE_PRESETS = [
     btn.className = 'chip';
     btn.textContent = preset.label;
     btn.addEventListener('click', () => {
-      const { from, to } = preset.range(new Date());
-      fromInput.value = isoDate(from);
-      toInput.value = isoDate(to);
-      DATE_PRESETS.forEach(p => p.el.classList.toggle('active', p === preset));
+      if (btn.classList.contains('active')) {
+        // Clicking the already-active preset turns it off — back to no
+        // date filter, same as on first load.
+        fromInput.value = '';
+        toInput.value = '';
+        clearActiveDatePreset();
+      } else {
+        const { from, to } = preset.range(new Date());
+        fromInput.value = isoDate(from);
+        toInput.value = isoDate(to);
+        DATE_PRESETS.forEach(p => p.el.classList.toggle('active', p === preset));
+      }
       render();
     });
     preset.el = btn;
