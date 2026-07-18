@@ -98,7 +98,10 @@ def _fetch_feed(feed, days_ahead):
 
         raw_category = feed.get("category", "Community")
         venue_name = location_text or feed["name"]
-        event_type = classify.classify_type(
+        # `event_type:` on the feed overrides the keyword guess entirely
+        # — useful when every event from this feed is genuinely the same
+        # type.
+        event_type = feed.get("event_type") or classify.classify_type(
             title=title, venue=venue_name, raw_category=raw_category
         )
         # ICS feeds only exist here because they're school/library/town

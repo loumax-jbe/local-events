@@ -86,7 +86,11 @@ def _scrape_site(site):
             link = urljoin(site["url"], link_el[site.get("link_attr", "href")])
 
         category = site.get("category", "Local Venue")
-        event_type = classify.classify_type(
+        # `event_type:` on the site overrides the keyword guess entirely
+        # — useful for a venue where every event is genuinely the same
+        # type (e.g. a bar that only ever hosts live music), rather than
+        # relying on titles/venue text to happen to contain a keyword.
+        event_type = site.get("event_type") or classify.classify_type(
             title=title, venue=site["name"], raw_category=category
         )
         # Venues in this list range from a town library to a regional

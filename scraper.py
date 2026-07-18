@@ -111,10 +111,10 @@ def _merge_sheet_sources(config):
 
     A row's `type` column picks which shape it becomes:
       type=ics          -> name, url, page_url, event_url_template,
-                            category, county
+                            category, county, event_type
       type=custom_html   -> name, url, event_selector, title_selector,
                             date_selector, time_selector, link_selector,
-                            link_attr, scale, county
+                            link_attr, scale, county, event_type
     Unset optional columns just fall back to the same defaults the YAML
     versions use. Blank/missing `type`, `name`, or `url` skips that row.
     """
@@ -150,6 +150,8 @@ def _merge_sheet_sources(config):
             row_type = row["type"].lower()
             county = row.get("county") or None
 
+            event_type_override = row.get("event_type") or None
+
             if row_type == "ics":
                 feeds.append({
                     "name": row["name"],
@@ -158,6 +160,7 @@ def _merge_sheet_sources(config):
                     "category": row.get("category") or "Community",
                     "county": county,
                     "event_url_template": row.get("event_url_template") or None,
+                    "event_type": event_type_override,
                 })
             elif row_type == "custom_html":
                 sites.append({
@@ -171,6 +174,7 @@ def _merge_sheet_sources(config):
                     "link_attr": row.get("link_attr") or "href",
                     "scale": row.get("scale") or "Mid-size",
                     "county": county,
+                    "event_type": event_type_override,
                 })
             else:
                 print(f"  [sheet] row {row['name']!r} has type {row['type']!r} — must be 'ics' or 'custom_html', skipping")

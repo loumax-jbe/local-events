@@ -22,6 +22,12 @@
 # venue without one only shows up when no county filter is applied. Set
 # it to whatever this venue's county actually is, e.g. "Mercer County, NJ".
 #
+# `event_type` is optional on both too — set it to force every event
+# from this venue into the same category (Music, Family & Kids, etc.),
+# skipping the keyword guess entirely. Useful when a venue is
+# consistently one thing, e.g. a bar that only ever hosts live music,
+# regardless of what each individual event happens to be titled.
+#
 # For ics_calendars, `event_url_template` is optional too — most ICS
 # feeds don't give each event its own URL, so cards fall back to
 # `page_url` (a general "browse all events" link) unless you set this.
