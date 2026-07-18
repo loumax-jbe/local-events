@@ -56,16 +56,21 @@ _TYPE_KEYWORDS = [
         "athletics",
     ]),
     ("Film", ["screening", "film festival", "movie night"]),
-    ("Community & Civic", [
-        "town hall", "board of education", "council meeting", "library",
-        "civic", "volunteer", "blood drive", "fundraiser",
-    ]),
     ("Theater & Performing Arts", [
         "musical", "theatre", "theater", "play", "recital", "ballet",
         "orchestra", "symphony", "choir", "opera",
     ]),
     ("Concert", [
         "concert", "tour", "live music", "band", "singer", "songwriter",
+    ]),
+    # Checked last: "library" alone matches almost every venue name for an
+    # ICS-fed library calendar (e.g. "Princeton Public Library - Community
+    # Room"), so it would otherwise swallow genuine concerts/plays/kids'
+    # events hosted there before their own, more specific keywords get a
+    # chance to match.
+    ("Community & Civic", [
+        "town hall", "board of education", "council meeting", "library",
+        "civic", "volunteer", "blood drive", "fundraiser",
     ]),
 ]
 
