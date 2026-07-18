@@ -600,11 +600,19 @@ const DATE_PRESETS = [
       const { from, to } = preset.range(new Date());
       fromInput.value = isoDate(from);
       toInput.value = isoDate(to);
+      DATE_PRESETS.forEach(p => p.el.classList.toggle('active', p === preset));
       render();
     });
+    preset.el = btn;
     datePresetChipsEl.appendChild(btn);
   });
 })();
+
+// Editing the dates by hand means no preset accurately describes the
+// current range anymore, so clear whichever one was highlighted.
+function clearActiveDatePreset() {
+  DATE_PRESETS.forEach(p => p.el.classList.remove('active'));
+}
 
 async function loadEvents() {
   try {
@@ -624,8 +632,8 @@ async function loadEvents() {
 }
 
 searchInput.addEventListener('input', render);
-fromInput.addEventListener('input', render);
-toInput.addEventListener('input', render);
+fromInput.addEventListener('input', () => { clearActiveDatePreset(); render(); });
+toInput.addEventListener('input', () => { clearActiveDatePreset(); render(); });
 
 loadEvents();
 </script>
