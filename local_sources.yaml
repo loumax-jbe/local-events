@@ -65,6 +65,11 @@
 #     county: "Example County, NJ"
 # -----------------------------------------------------------------
 
-ics_calendars: []
+ics_calendars:
+  - name: "Arts Council of Princeton"
+    url: "https://artscouncilofprinceton.org/calendar/?ical=1"
+    page_url: "https://artscouncilofprinceton.org/calendar/"
+    category: "Arts Council"
+    county: "Mercer County, NJ"
 
 custom_html: []
