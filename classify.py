@@ -55,7 +55,11 @@ _TYPE_KEYWORDS = [
         "vs.", "vs ", "game day", "tournament", "5k", "10k", "marathon",
         "athletics",
     ]),
-    ("Film", ["screening", "film festival", "movie night"]),
+    # Bare "screening" used to be a keyword here too, but it's ambiguous
+    # — it also matches health events like "blood pressure screening",
+    # which is a community health service, not a movie. Only the
+    # unambiguous film-specific phrases are matched.
+    ("Film", ["film screening", "movie screening", "film festival", "movie night"]),
     ("Theater & Performing Arts", [
         "musical", "theatre", "theater", "play", "recital", "ballet",
         "orchestra", "symphony", "choir", "opera",
@@ -70,7 +74,8 @@ _TYPE_KEYWORDS = [
     # chance to match.
     ("Community & Civic", [
         "town hall", "board of education", "council meeting", "library",
-        "civic", "volunteer", "blood drive", "fundraiser",
+        "civic", "volunteer", "blood drive", "blood pressure", "health screening",
+        "fundraiser",
     ]),
 ]
 
