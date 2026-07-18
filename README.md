@@ -154,6 +154,7 @@ sites:
     event_selector: ".event-card"      # repeating card wrapping one event
     title_selector: ".event-card__title"
     date_selector: ".event-card__date"
+    time_selector: ".event-card__time" # optional — only if the time has its own element
     link_selector: "a"
     link_attr: "href"
     scale: "Mid-size"                  # Major / Mid-size / Local-Community
@@ -209,6 +210,7 @@ venue, no code or GitHub editing needed to add one.
    | `event_selector` | `custom_html` | CSS selector for the repeating event card |
    | `title_selector` | `custom_html` | CSS selector for the title within a card |
    | `date_selector` | `custom_html` | CSS selector for the date within a card |
+   | `time_selector` | `custom_html` | optional — CSS selector for the start time, if it's in its own element separate from the date; combined into a full timestamp when it parses cleanly, otherwise the event just shows date-only rather than a guessed-wrong time. Only works if the time has its own selectable element — some sites run it as bare text alongside other content with nothing to select, in which case leave this blank |
    | `link_selector` | `custom_html` | defaults to `a` |
    | `link_attr` | `custom_html` | defaults to `href` |
    | `scale` | `custom_html` | `Major` / `Mid-size` / `Local-Community`; defaults to `Mid-size` |

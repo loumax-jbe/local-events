@@ -113,8 +113,8 @@ def _merge_sheet_sources(config):
       type=ics          -> name, url, page_url, event_url_template,
                             category, county
       type=custom_html   -> name, url, event_selector, title_selector,
-                            date_selector, link_selector, link_attr,
-                            scale, county
+                            date_selector, time_selector, link_selector,
+                            link_attr, scale, county
     Unset optional columns just fall back to the same defaults the YAML
     versions use. Blank/missing `type`, `name`, or `url` skips that row.
     """
@@ -166,6 +166,7 @@ def _merge_sheet_sources(config):
                     "event_selector": row.get("event_selector"),
                     "title_selector": row.get("title_selector"),
                     "date_selector": row.get("date_selector"),
+                    "time_selector": row.get("time_selector") or None,
                     "link_selector": row.get("link_selector") or "a",
                     "link_attr": row.get("link_attr") or "href",
                     "scale": row.get("scale") or "Mid-size",

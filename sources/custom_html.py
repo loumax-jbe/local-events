@@ -65,6 +65,7 @@ def _scrape_site(site):
     for card in cards:
         title_el = card.select_one(site["title_selector"])
         date_el = card.select_one(site["date_selector"])
+        time_el = card.select_one(site["time_selector"]) if site.get("time_selector") else None
         link_el = card.select_one(site.get("link_selector", "a"))
 
         if not title_el:
@@ -76,8 +77,9 @@ def _scrape_site(site):
         # "Jul17" instead of "Jul 17" and fail to parse as a date).
         title = title_el.get_text(separator=" ", strip=True)
         raw_date = date_el.get_text(separator=" ", strip=True) if date_el else None
+        raw_time = time_el.get_text(separator=" ", strip=True) if time_el else None
 
-        date_iso, date_display = _parse_date(raw_date)
+        date_iso, date_display = _parse_date(raw_date, raw_time)
 
         link = None
         if link_el and link_el.has_attr(site.get("link_attr", "href")):
@@ -113,11 +115,26 @@ def _scrape_site(site):
     return events
 
 
-def _parse_date(raw_date):
+def _parse_date(raw_date, raw_time=None):
+    """
+    Parses the date; when time_selector is set and its text parses
+    cleanly, combines it with the date into a full timestamp. Falls back
+    to date-only when there's no time_selector, or its text doesn't
+    parse (e.g. a stray label rather than an actual time) — better to
+    show a correct date with no time than guess wrong.
+    """
     if not raw_date:
         return None, None
     try:
-        dt = dateparser.parse(raw_date, fuzzy=True)
-        return dt.isoformat(), None
+        date_only = dateparser.parse(raw_date, fuzzy=True)
     except (ValueError, OverflowError):
         return None, raw_date
+
+    if raw_time:
+        try:
+            combined = dateparser.parse(raw_time, default=date_only, fuzzy=True)
+            return combined.isoformat(), None
+        except (ValueError, OverflowError):
+            pass
+
+    return date_only.isoformat(), None

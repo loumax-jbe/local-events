@@ -47,6 +47,12 @@
 #     event_selector: ".event-card"
 #     title_selector: ".event-card__title"
 #     date_selector: ".event-card__date"
+#     time_selector: ".event-card__time"  # optional — only if the time
+#                                          # has its own selectable element
+#                                          # separate from the date; leave
+#                                          # out otherwise, cards just show
+#                                          # date-only rather than a
+#                                          # guessed-wrong time
 #     link_selector: "a"
 #     link_attr: "href"
 #     scale: "Mid-size"
