@@ -92,6 +92,16 @@ events:
     source_note: "Instagram @montymusical"
     county: "Somerset County, NJ"
 
+  - title: "New York Black Yankees Night"
+    date: "2026-08-01T19:05"
+    venue: "TD Bank Ballpark (Somerset Patriots)"
+    url: "https://www.milb.com/somerset/community/black-yankees"
+    category: "Sports - Promotional Night"
+    event_type: "Sports"
+    price_display: ""
+    source_note: "MiLB.com"
+    county: "Somerset County, NJ"
+
   # - title: "Another event you spot on Instagram"
   #   date: "2026-08-02T18:00"
   #   venue: "Some Local Venue"
