@@ -458,6 +458,7 @@ function buildCard(e) {
       <div class="ticket-title">${escapeHtml(e.title || 'Untitled event')}</div>
       <div class="ticket-venue">${escapeHtml(e.venue || 'Venue TBA')}</div>
       <div class="ticket-meta">
+        ${e.end_date ? `<span class="tag">Through ${escapeHtml(formatShortDate(e.end_date))}</span>` : ''}
         ${e.county ? `<span class="tag">${escapeHtml(e.county)}</span>` : ''}
         ${(e.event_type || e.category) ? `<span class="tag">${escapeHtml(e.event_type || e.category)}</span>` : ''}
         ${e.price_display ? `<span class="tag price">${escapeHtml(e.price_display)}</span>` : ''}
@@ -466,6 +467,12 @@ function buildCard(e) {
     </div>
   `;
   return a;
+}
+
+function formatShortDate(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  return d.toLocaleString(undefined, { month: 'short', day: 'numeric' });
 }
 
 function formatGeneratedAt(iso) {
@@ -576,7 +583,12 @@ function render() {
     // checked against the range — keep them rather than dropping a
     // genuinely local event just because we can't verify its date.
     const day = e.date ? e.date.slice(0, 10) : null;
-    const matchesDate = !day || ((!fromDate || day >= fromDate) && (!toDate || day <= toDate));
+    // A multi-day event (end_date set) matches the range as long as its
+    // run overlaps it at all, not just its opening day — so a 3-week
+    // exhibition still shows up under "Next Weekend" even though it
+    // opened before that weekend started.
+    const endDay = e.end_date ? e.end_date.slice(0, 10) : day;
+    const matchesDate = !day || ((!fromDate || endDay >= fromDate) && (!toDate || day <= toDate));
     return matchesCounty && matchesType && matchesQuery && matchesDate;
   });
 

@@ -281,9 +281,21 @@ def upsert_events(conn, events):
 
 
 def prune_past_events(conn):
+    """
+    A multi-day event (an exhibition, a festival) should stay listed
+    for its whole run, not disappear the day after it opens — so an
+    event with an end_date is only pruned once that last day has
+    passed, not its start date.
+    """
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     conn.execute(
-        "DELETE FROM events WHERE date IS NOT NULL AND substr(date,1,10) < ?", (today,)
+        """
+        DELETE FROM events WHERE
+            CASE WHEN end_date IS NOT NULL THEN substr(end_date,1,10)
+                 ELSE substr(date,1,10) END < ?
+            AND date IS NOT NULL
+        """,
+        (today,),
     )
     conn.commit()
 

@@ -95,7 +95,7 @@ def _fetch_feed(feed, days_ahead):
         location_text = str(comp.get("location")) if comp.get("location") else None
         url = _event_url(comp, feed)
 
-        date_iso, date_display = _extract_date(comp)
+        date_iso, date_display, end_date_iso = _extract_date(comp)
 
         raw_category = feed.get("category", "Community")
         venue_name = location_text or feed["name"]
@@ -117,6 +117,7 @@ def _fetch_feed(feed, days_ahead):
                 venue=venue_name,
                 date=date_iso,
                 date_display=date_display,
+                end_date=end_date_iso,
                 url=url,
                 category=raw_category,
                 source=feed["name"],
@@ -191,13 +192,35 @@ def _price_display(comp, feed, url):
 
 
 def _extract_date(comp):
+    """
+    Returns (date_iso, date_display, end_date_iso). end_date_iso is only
+    set for a genuinely multi-day all-day event (an exhibition, a
+    festival) — the last day it actually runs, not just its opening day.
+    """
     dtstart = comp.get("dtstart")
     if dtstart is None:
-        return None, None
+        return None, None, None
     value = dtstart.dt
     if isinstance(value, datetime):
-        return value.isoformat(), None
+        return value.isoformat(), None, None
     if isinstance(value, date):
-        # all-day event, no time component
-        return None, f"{value.strftime('%B')} {value.day}, {value.year}"
-    return None, str(value)
+        # All-day event, no time component. Anchor on local midnight —
+        # an explicit T00:00:00, not a bare date string — so the
+        # dashboard parses it as local time rather than UTC (the same
+        # day-rollover trap fixed for isoDate() there).
+        date_iso = f"{value.isoformat()}T00:00:00"
+
+        end_date_iso = None
+        dtend = comp.get("dtend")
+        if dtend is not None:
+            end_value = dtend.dt
+            if isinstance(end_value, date) and not isinstance(end_value, datetime):
+                # DTEND on an all-day event is exclusive per RFC 5545 —
+                # it's the day *after* the last full day, so the actual
+                # last day is one day earlier.
+                last_day = end_value - timedelta(days=1)
+                if last_day > value:
+                    end_date_iso = f"{last_day.isoformat()}T00:00:00"
+
+        return date_iso, None, end_date_iso
+    return None, str(value), None

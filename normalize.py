@@ -14,8 +14,12 @@ EVENT_FIELDS = [
     "id",           # stable hash, used as primary key
     "title",
     "venue",
-    "date",         # ISO 8601, e.g. 2026-08-14T19:30:00
+    "date",         # ISO 8601, e.g. 2026-08-14T19:30:00 — start date/time
     "date_display", # human-readable fallback if time unknown
+    "end_date",     # ISO 8601, optional — last day of a multi-day event
+                    # (an exhibition, a festival). None for single-day
+                    # events. Keeps the event visible/filterable for its
+                    # whole run instead of just its opening day.
     "url",
     "category",     # raw label from the source (genre, feed category, etc.)
     "source",
