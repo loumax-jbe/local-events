@@ -309,6 +309,45 @@
   }
   .tag.price { color: var(--marquee); border-color: var(--marquee-dim); }
 
+  .calendar-menu {
+    display: inline-block;
+  }
+  .calendar-toggle {
+    cursor: pointer;
+  }
+  .calendar-toggle:hover {
+    border-color: var(--marquee-dim);
+    color: var(--marquee);
+  }
+  /* Appended directly to <body> when open (see closeAllDropdowns() in
+     the script) rather than nested in its card, since every .ticket
+     has overflow:hidden and would clip it — top/left are set inline
+     by JS from the toggle's actual on-screen position. */
+  .calendar-dropdown {
+    position: absolute;
+    background: var(--ink-raised);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 4px;
+    min-width: 160px;
+    z-index: 10;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+  .calendar-option {
+    display: block;
+    padding: 8px 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--cream);
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .calendar-option:hover {
+    background: var(--ink);
+    color: var(--marquee);
+  }
+
   /* ---------- Empty / error states ---------- */
   .empty-state {
     text-align: center;
@@ -473,7 +512,196 @@ function buildCard(e) {
       </div>
     </div>
   `;
+
+  const calendarControl = buildCalendarControl(e);
+  if (calendarControl) {
+    a.querySelector('.ticket-meta').appendChild(calendarControl);
+  }
+
   return a;
+}
+
+// ---------- Add to Calendar ----------
+
+function pad2(n) {
+  return String(n).padStart(2, '0');
+}
+
+function icsDateTimeUTC(d) {
+  return d.getUTCFullYear() + pad2(d.getUTCMonth() + 1) + pad2(d.getUTCDate())
+    + 'T' + pad2(d.getUTCHours()) + pad2(d.getUTCMinutes()) + pad2(d.getUTCSeconds()) + 'Z';
+}
+
+function icsDateOnly(d) {
+  return `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}`;
+}
+
+function icsEscape(text) {
+  return String(text || '')
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\n/g, '\\n');
+}
+
+// A card's date is midnight local with no end_date either because it's
+// a genuine all-day event, or (rarely) a manual entry typed in without
+// a time — either way, exporting it as an all-day calendar entry reads
+// better than a misleading "12:00 AM" appointment.
+function isAllDayEvent(e, start) {
+  return Boolean(e.end_date) || (start.getHours() === 0 && start.getMinutes() === 0 && start.getSeconds() === 0);
+}
+
+// No stored end time for timed events — two hours is a reasonable
+// default length for a calendar entry when the real one is unknown.
+const DEFAULT_EVENT_DURATION_MS = 2 * 60 * 60 * 1000;
+
+function buildIcsContent(e) {
+  const start = new Date(e.date);
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Local Events Board//EN', 'BEGIN:VEVENT'];
+  lines.push(`UID:${e.id || Math.random().toString(36).slice(2)}@local-events-board`);
+  lines.push(`DTSTAMP:${icsDateTimeUTC(new Date())}`);
+
+  if (isAllDayEvent(e, start)) {
+    const endSource = e.end_date ? new Date(e.end_date) : start;
+    const endExclusive = addDays(endSource, 1); // DTEND on an all-day event is exclusive
+    lines.push(`DTSTART;VALUE=DATE:${icsDateOnly(start)}`);
+    lines.push(`DTEND;VALUE=DATE:${icsDateOnly(endExclusive)}`);
+  } else {
+    const end = new Date(start.getTime() + DEFAULT_EVENT_DURATION_MS);
+    lines.push(`DTSTART:${icsDateTimeUTC(start)}`);
+    lines.push(`DTEND:${icsDateTimeUTC(end)}`);
+  }
+
+  lines.push(`SUMMARY:${icsEscape(e.title || 'Untitled event')}`);
+  if (e.venue) lines.push(`LOCATION:${icsEscape(e.venue)}`);
+  if (e.url) lines.push(`URL:${icsEscape(e.url)}`);
+  lines.push('END:VEVENT', 'END:VCALENDAR');
+  return lines.join('\r\n');
+}
+
+function downloadIcs(e) {
+  const blob = new Blob([buildIcsContent(e)], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${(e.title || 'event').replace(/[^\w-]+/g, '_').slice(0, 60)}.ics`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function googleCalendarUrl(e) {
+  const start = new Date(e.date);
+  let datesParam;
+  if (isAllDayEvent(e, start)) {
+    const endSource = e.end_date ? new Date(e.end_date) : start;
+    const endExclusive = addDays(endSource, 1);
+    datesParam = `${icsDateOnly(start)}/${icsDateOnly(endExclusive)}`;
+  } else {
+    const end = new Date(start.getTime() + DEFAULT_EVENT_DURATION_MS);
+    datesParam = `${icsDateTimeUTC(start)}/${icsDateTimeUTC(end)}`;
+  }
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: e.title || 'Untitled event',
+    dates: datesParam,
+    location: e.venue || '',
+    details: e.url || '',
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+function makeKeyboardClickable(el) {
+  el.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter' || ev.key === ' ') {
+      ev.preventDefault();
+      el.click();
+    }
+  });
+}
+
+// Every ticket card has overflow:hidden (needed for its perforation
+// notch visual), which would silently clip a dropdown nested inside
+// it — so an open dropdown lives directly under <body> instead,
+// positioned to sit right under its toggle. closeAllDropdowns() is
+// also called before every render() rebuild, since a dropdown popped
+// out to <body> wouldn't otherwise get cleaned up when its card is
+// replaced.
+function closeAllDropdowns() {
+  document.querySelectorAll('.calendar-dropdown.open').forEach(el => el.remove());
+  document.querySelectorAll('.calendar-toggle[data-open="true"]').forEach(el => { el.dataset.open = 'false'; });
+}
+
+document.addEventListener('click', closeAllDropdowns);
+
+// Built as real DOM elements with real listeners (not an HTML string)
+// so the toggle/option clicks can stop propagation and preventDefault
+// — without that, a click here would bubble up into the card's own
+// <a> and navigate to the event's page instead of opening the menu.
+function buildCalendarControl(e) {
+  if (!e.date || isNaN(new Date(e.date))) return null;
+
+  const wrap = document.createElement('span');
+  wrap.className = 'calendar-menu';
+
+  const toggle = document.createElement('span');
+  toggle.className = 'tag calendar-toggle';
+  toggle.textContent = '+ Calendar';
+  toggle.setAttribute('role', 'button');
+  toggle.setAttribute('tabindex', '0');
+
+  const gcalOption = document.createElement('span');
+  gcalOption.className = 'calendar-option';
+  gcalOption.textContent = 'Google Calendar';
+  gcalOption.setAttribute('role', 'button');
+  gcalOption.setAttribute('tabindex', '0');
+  gcalOption.addEventListener('click', ev => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    window.open(googleCalendarUrl(e), '_blank', 'noopener,noreferrer');
+    closeAllDropdowns();
+  });
+  makeKeyboardClickable(gcalOption);
+
+  const icsOption = document.createElement('span');
+  icsOption.className = 'calendar-option';
+  icsOption.textContent = 'Download .ics';
+  icsOption.setAttribute('role', 'button');
+  icsOption.setAttribute('tabindex', '0');
+  icsOption.addEventListener('click', ev => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    downloadIcs(e);
+    closeAllDropdowns();
+  });
+  makeKeyboardClickable(icsOption);
+
+  toggle.addEventListener('click', ev => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    const wasOpen = toggle.dataset.open === 'true';
+    closeAllDropdowns();
+    if (wasOpen) return;
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'calendar-dropdown open';
+    dropdown.appendChild(gcalOption);
+    dropdown.appendChild(icsOption);
+    // Click inside the dropdown shouldn't count as an "outside" click
+    // that closes it — only the option buttons themselves (above)
+    // close it, after acting.
+    dropdown.addEventListener('click', ev2 => ev2.stopPropagation());
+    document.body.appendChild(dropdown);
+
+    const rect = toggle.getBoundingClientRect();
+    dropdown.style.top = `${rect.bottom + window.scrollY + 6}px`;
+    dropdown.style.left = `${rect.left + window.scrollX}px`;
+    toggle.dataset.open = 'true';
+  });
+  makeKeyboardClickable(toggle);
+
+  wrap.appendChild(toggle);
+  return wrap;
 }
 
 function formatGeneratedAt(iso) {
@@ -579,6 +807,11 @@ function renderGroupedByWeek(container, events) {
 // ---------- Filter + render ----------
 
 function render() {
+  // A dropdown popped out to <body> (see closeAllDropdowns() above)
+  // isn't inside #grid, so grid.innerHTML = '' below wouldn't clean it
+  // up on its own — close it explicitly before rebuilding the list.
+  closeAllDropdowns();
+
   const query = searchInput.value.trim().toLowerCase();
   const fromDate = fromInput.value;
   const toDate = toInput.value;
