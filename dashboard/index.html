@@ -672,6 +672,15 @@ function thisWeekendRange(today) {
 
 function nextWeekendRange(today) {
   const day = today.getDay(); // 0=Sun..6=Sat
+  if (day === 0) {
+    // Sunday — this weekend's Saturday was yesterday, so the (6-day+7)%7
+    // formula below would wrap forward a full week (treating it as 6
+    // days *ahead* instead of 1 day behind), pushing next weekend out
+    // to the wrong one. Next Saturday is just 6 days from today.
+    const nextSat = addDays(today, 6);
+    const nextSun = addDays(nextSat, 1);
+    return { from: nextSat, to: nextSun };
+  }
   const daysUntilThisSat = (6 - day + 7) % 7; // 0 if today is Saturday
   const thisSat = addDays(today, daysUntilThisSat);
   const nextSat = addDays(thisSat, 7);
