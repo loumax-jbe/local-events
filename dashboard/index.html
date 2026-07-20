@@ -418,11 +418,19 @@ function splitDate(e) {
   if (e.date) {
     const d = new Date(e.date);
     if (!isNaN(d)) {
-      return {
-        month: d.toLocaleString(undefined, { month: 'short' }).toUpperCase(),
-        day: d.getDate(),
-        time: d.toLocaleString(undefined, { hour: 'numeric', minute: '2-digit' }),
-      };
+      const month = d.toLocaleString(undefined, { month: 'short' }).toUpperCase();
+      const day = d.getDate();
+      // A multi-day event (an exhibition, a festival) has no real start
+      // time — show its end date on this line instead of a misleading
+      // midnight time, so the badge itself reads as a range.
+      let time = d.toLocaleString(undefined, { hour: 'numeric', minute: '2-digit' });
+      if (e.end_date && e.end_date.slice(0, 10) !== e.date.slice(0, 10)) {
+        const endD = new Date(e.end_date);
+        if (!isNaN(endD)) {
+          time = `– ${endD.toLocaleString(undefined, { month: 'short', day: 'numeric' })}`;
+        }
+      }
+      return { month, day, time };
     }
   }
   if (e.date_display) {
@@ -536,6 +544,7 @@ function formatWeekLabel(weekStart) {
 function renderGroupedByWeek(container, events) {
   const weeks = new Map();
   const tbd = [];
+  const todayStr = isoDate(new Date());
 
   events.forEach(e => {
     const day = e.date ? e.date.slice(0, 10) : null;
@@ -543,7 +552,14 @@ function renderGroupedByWeek(container, events) {
       tbd.push(e);
       return;
     }
-    const start = weekStartDate(day);
+    // A multi-day event (end_date set) that's still running groups
+    // under the current week instead of the week it originally opened
+    // in — otherwise an exhibition that opened weeks ago would sit
+    // under an already-past-looking header instead of near the top of
+    // the list where it's actually still relevant.
+    const endDay = e.end_date ? e.end_date.slice(0, 10) : day;
+    const groupDay = (day < todayStr && endDay >= todayStr) ? todayStr : day;
+    const start = weekStartDate(groupDay);
     const key = isoDate(start);
     if (!weeks.has(key)) {
       weeks.set(key, { label: formatWeekLabel(start), events: [] });
