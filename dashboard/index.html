@@ -466,7 +466,6 @@ function buildCard(e) {
       <div class="ticket-title">${escapeHtml(e.title || 'Untitled event')}</div>
       <div class="ticket-venue">${escapeHtml(e.venue || 'Venue TBA')}</div>
       <div class="ticket-meta">
-        ${e.end_date ? `<span class="tag">Through ${escapeHtml(formatShortDate(e.end_date))}</span>` : ''}
         ${e.county ? `<span class="tag">${escapeHtml(e.county)}</span>` : ''}
         ${(e.event_type || e.category) ? `<span class="tag">${escapeHtml(e.event_type || e.category)}</span>` : ''}
         ${e.price_display ? `<span class="tag price">${escapeHtml(e.price_display)}</span>` : ''}
@@ -475,12 +474,6 @@ function buildCard(e) {
     </div>
   `;
   return a;
-}
-
-function formatShortDate(iso) {
-  const d = new Date(iso);
-  if (isNaN(d)) return '';
-  return d.toLocaleString(undefined, { month: 'short', day: 'numeric' });
 }
 
 function formatGeneratedAt(iso) {
