@@ -12,6 +12,9 @@
 #   title:       what's happening
 #   date:        "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM" (24-hour) if you know
 #                the start time — the time makes it sort/display better
+#   end_date:    same format as date — optional, only for something that
+#                genuinely runs more than one day (a festival, a 2-day
+#                reenactment). Leave blank for a normal single-day event.
 #   venue:       where
 #   url:         link to more info (school page, Eventbrite, etc.) —
 #                leave blank if there isn't one
@@ -100,6 +103,17 @@ events:
     event_type: "Sports"
     price_display: ""
     source_note: "MiLB.com"
+    county: "Somerset County, NJ"
+
+  - title: "SSAAM's Historic Skillman Camp Meeting Reenactment"
+    date: "2026-10-10T12:00"
+    end_date: "2026-10-11T16:00"
+    venue: "Stoutsburg Sourland African American Museum"
+    url: "https://www.eventbrite.com/e/ssaams-historic-skillman-camp-meeting-reenactment-tickets-1994520032107"
+    category: "Living History Reenactment"
+    event_type: ""
+    price_display: "Free"
+    source_note: "Eventbrite"
     county: "Somerset County, NJ"
 
   # - title: "Another event you spot on Instagram"

@@ -54,6 +54,7 @@ def fetch(config):
                 venue=venue,
                 date=raw.get("date"),
                 date_display=raw.get("date_display"),
+                end_date=raw.get("end_date") or None,
                 url=raw.get("url") or None,
                 category=category,
                 source=source_note,
