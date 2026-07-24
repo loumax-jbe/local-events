@@ -931,6 +931,7 @@ function nextWeekendRange(today) {
 }
 
 const DATE_PRESETS = [
+  { label: 'Today', range: (today) => ({ from: today, to: today }) },
   { label: 'This Weekend', range: thisWeekendRange },
   { label: 'Next Weekend', range: nextWeekendRange },
   { label: 'Next 7 Days', range: (today) => ({ from: today, to: addDays(today, 6) }) },
