@@ -36,7 +36,10 @@ import yaml
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from normalize import EVENT_FIELDS, dedupe
-from sources import ticketmaster, seatgeek, custom_html, ics_calendar, manual, events_sheet
+from sources import (
+    ticketmaster, seatgeek, custom_html, ics_calendar, manual, events_sheet,
+    civicplus_calendar,
+)
 import runlog
 
 SOURCE_MODULES = {
@@ -46,6 +49,7 @@ SOURCE_MODULES = {
     "custom_html": custom_html,
     "manual": manual,
     "events_sheet": events_sheet,
+    "civicplus_calendars": civicplus_calendar,
 }
 
 
@@ -75,9 +79,9 @@ def _merge_local_sources(config, path="local_sources.yaml"):
     """
     local_sources.yaml is the maintainer-facing "add a place" file —
     kept separate from config.yaml so adding a venue is a small, low-risk
-    edit. Its ics_calendars/custom_html lists get appended onto the same
-    lists in config.yaml so sources/ics_calendar.py and
-    sources/custom_html.py don't need to know two files exist.
+    edit. Its ics_calendars/custom_html/civicplus_calendars lists get
+    appended onto the same lists in config.yaml so the source modules
+    don't need to know two files exist.
     """
     if not os.path.exists(path):
         return
@@ -94,6 +98,11 @@ def _merge_local_sources(config, path="local_sources.yaml"):
     if extra_sites:
         config.setdefault("sources", {}).setdefault("custom_html", {}).setdefault("sites", [])
         config["sources"]["custom_html"]["sites"].extend(extra_sites)
+
+    extra_civicplus_feeds = local.get("civicplus_calendars") or []
+    if extra_civicplus_feeds:
+        config.setdefault("sources", {}).setdefault("civicplus_calendars", {}).setdefault("feeds", [])
+        config["sources"]["civicplus_calendars"]["feeds"].extend(extra_civicplus_feeds)
 
 
 # Required on every sheet row, regardless of type.

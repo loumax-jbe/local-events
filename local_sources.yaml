@@ -63,6 +63,17 @@
 #     link_attr: "href"
 #     scale: "Mid-size"
 #     county: "Example County, NJ"
+#
+# civicplus_calendars: for CivicPlus-powered town/municipal sites — find
+# the feed URL on the site's own /rss.aspx page, under "Calendar" (each
+# individual calendar gets its own link there). Most calendars on a town
+# site are internal board/committee meetings, not public events — only
+# add the community-facing ones.
+#   - name: "Example Town — Parks & Recreation"
+#     url: "https://example-town.gov/RSSFeed.aspx?ModID=58&CID=Parks-Recreation-22"
+#     page_url: "https://example-town.gov/calendar.aspx"
+#     category: "Parks & Recreation"
+#     county: "Example County, NJ"
 # -----------------------------------------------------------------
 
 ics_calendars:
@@ -78,3 +89,37 @@ ics_calendars:
     fetch_price_from_page: true
 
 custom_html: []
+
+# Montgomery Township runs on CivicPlus. Most of its ~29 calendars are
+# board/committee meetings (Planning Board, Zoning, Finance & Tax,
+# etc.) — these are the community-facing ones worth surfacing here.
+civicplus_calendars:
+  - name: "Montgomery Township — About Montgomery"
+    url: "https://www.montgomerynj.gov/RSSFeed.aspx?ModID=58&CID=About-Montgomery-39"
+    page_url: "https://www.montgomerynj.gov/calendar.aspx?CID=39"
+    category: "Township"
+    county: "Somerset County, NJ"
+
+  - name: "Montgomery Township — Main Calendar"
+    url: "https://www.montgomerynj.gov/RSSFeed.aspx?ModID=58&CID=Main-Calendar-14"
+    page_url: "https://www.montgomerynj.gov/calendar.aspx?CID=14"
+    category: "Township"
+    county: "Somerset County, NJ"
+
+  - name: "Montgomery Township — Parks & Recreation"
+    url: "https://www.montgomerynj.gov/RSSFeed.aspx?ModID=58&CID=Parks-Recreation-22"
+    page_url: "https://www.montgomerynj.gov/calendar.aspx?CID=22"
+    category: "Parks & Recreation"
+    county: "Somerset County, NJ"
+
+  - name: "Montgomery Township — Municipal Alliance / Youth Services Commission"
+    url: "https://www.montgomerynj.gov/RSSFeed.aspx?ModID=58&CID=Municipal-Alliance-Youth-Services-Commis-40"
+    page_url: "https://www.montgomerynj.gov/calendar.aspx?CID=40"
+    category: "Youth Services"
+    county: "Somerset County, NJ"
+
+  - name: "Montgomery Township — Veterans Memorial Committee"
+    url: "https://www.montgomerynj.gov/RSSFeed.aspx?ModID=58&CID=Veterans-Memorial-Committee-38"
+    page_url: "https://www.montgomerynj.gov/calendar.aspx?CID=38"
+    category: "Community"
+    county: "Somerset County, NJ"

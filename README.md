@@ -142,6 +142,33 @@ Add more feeds the same way for other schools, libraries, or your
 town's site — look for the same "Subscribe" / "RSS" / "Add to Calendar"
 pattern first, before reaching for `custom_html` below.
 
+### CivicPlus town/municipal calendars
+
+A lot of town/municipal government sites run on CivicPlus, a common
+government website platform — recognizable by URLs like
+`yourtown.gov/calendar.aspx?CID=<number>` and a "Select a Calendar"
+checklist with dozens of entries (usually mostly internal board/
+committee meetings, not public events). These sites expose a per-
+calendar RSS feed rather than an ICS file, handled by a separate
+`civicplus_calendars` source:
+
+```yaml
+civicplus_calendars:
+  - name: "Your Town — Parks & Recreation"
+    url: "https://yourtown.gov/RSSFeed.aspx?ModID=58&CID=Parks-Recreation-22"
+    page_url: "https://yourtown.gov/calendar.aspx"
+    category: "Parks & Recreation"
+    county: "Your County, NJ"
+```
+
+To find the feed URL: go to the site's `/rss.aspx` page and look under
+the "Calendar" heading — every individual calendar is listed there,
+including an "All" combined feed. Only add the calendars that are
+actually community-facing (a "Main Calendar", "Parks & Recreation",
+etc.) — most of the rest are board/committee meeting calendars, which
+would just clutter the dashboard with government meetings instead of
+events.
+
 ## 5. Add local venues without a feed (optional)
 
 For venues with an events page but no ICS feed, `custom_html` scrapes

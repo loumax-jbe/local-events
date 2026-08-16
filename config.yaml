@@ -146,6 +146,16 @@ sources:
   events_sheet:
     enabled: true
 
+  # CivicPlus-powered town/municipal sites (a common government website
+  # platform) expose a per-calendar RSS feed at
+  # /RSSFeed.aspx?ModID=58&CID=<calendar-slug-id> — find the URL for a
+  # given calendar on the site's own /rss.aspx page, under "Calendar".
+  # Most calendars on a town site are internal board/committee meetings,
+  # not public events — only add the community-facing ones. See
+  # local_sources.yaml for entries.
+  civicplus_calendars:
+    enabled: true
+
 # Tuning for the Major / Mid-size / Local-Community scale classification
 # (see classify.py). Ticketmaster events are classified by top ticket
 # price since the API doesn't expose a popularity figure; SeatGeek events
