@@ -123,3 +123,9 @@ civicplus_calendars:
     page_url: "https://www.montgomerynj.gov/calendar.aspx?CID=38"
     category: "Community"
     county: "Somerset County, NJ"
+
+  - name: "Montgomery Township — Open Space Committee"
+    url: "https://www.montgomerynj.gov/RSSFeed.aspx?ModID=58&CID=Open-Space-Committee-35"
+    page_url: "https://www.montgomerynj.gov/calendar.aspx?CID=35"
+    category: "Community"
+    county: "Somerset County, NJ"
